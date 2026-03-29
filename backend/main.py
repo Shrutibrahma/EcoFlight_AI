@@ -8,6 +8,8 @@ While other teams optimize fuel only, we optimize TOTAL warming.
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 import numpy as np
@@ -877,6 +879,11 @@ def radio_demo_context(aircraft_type: str = "B737"):
         ]
     }
 
+
+# Serve frontend (public/) at root — must be mounted AFTER all API routes
+_PUBLIC = os.path.join(os.path.dirname(__file__), '..', 'public')
+if os.path.isdir(_PUBLIC):
+    app.mount("/", StaticFiles(directory=_PUBLIC, html=True), name="static")
 
 if __name__ == "__main__":
     import uvicorn

@@ -1144,9 +1144,7 @@ function ariaRemoveTyping(id) {
 </style>
 
 <script>
-const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:8000'
-    : '';
+const API = '';
 let selectedMode = 'climate';
 let activeTab = 'preset';   // 'preset' | 'custom'
 let isComputing = false;
