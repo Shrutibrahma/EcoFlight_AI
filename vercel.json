@@ -1,16 +1,16 @@
 {
   "version": 2,
   "builds": [
-    { "src": "api/index.py", "use": "@vercel/python" }
+    { "src": "api/index.py", "use": "@vercel/python" },
+    { "src": "public/**", "use": "@vercel/static" }
   ],
   "routes": [
     { "src": "/optimize",         "dest": "/api/index.py" },
     { "src": "/airports",         "dest": "/api/index.py" },
     { "src": "/health",           "dest": "/api/index.py" },
     { "src": "/references",       "dest": "/api/index.py" },
-    { "src": "/about",            "dest": "/api/index.py" },
     { "src": "/radio/(.*)",       "dest": "/api/index.py" },
-    { "src": "/(.*\\.(html|js|css|png|jpg|svg|ico|json|woff2?))", "dest": "/frontend/$1" },
-    { "src": "/",                 "dest": "/frontend/nav_index.html" }
+    { "src": "/",                 "dest": "/public/nav_index.html" },
+    { "src": "/(.*)",             "dest": "/public/$1" }
   ]
 }
