@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EcoFlight AI | Live Route Optimizer</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#f0f2f5;color:#1a2a3a;font-family:'JetBrains Mono',monospace;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+/* ── TOP BAR ── */
+.topbar{background:linear-gradient(90deg,#0a1018,#0d1520,#0a1018);border-bottom:2px solid #EF9F27;padding:10px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.logo{font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:#00e5ff;letter-spacing:3px;}
+.topbar-mid{font-size:0.6rem;color:#4a8a9a;letter-spacing:2px;text-transform:uppercase;}
+.status-pill{background:rgba(0,255,136,0.1);border:1px solid #00ff88;color:#00ff88;font-size:0.55rem;padding:3px 10px;border-radius:3px;letter-spacing:2px;}
+/* ── MAIN GRID ── */
+.main{flex:1;display:grid;grid-template-columns:280px 1fr 340px;min-height:0;overflow:hidden;}
+/* ── LEFT PANEL ── */
+.left-panel{background:linear-gradient(180deg,#ffffff,#f8fafc);border-right:1px solid #dde4ee;padding:18px;overflow-y:auto;display:flex;flex-direction:column;gap:0;}
+.panel-title{font-family:'Orbitron',sans-serif;font-size:0.65rem;color:#378ADD;letter-spacing:3px;text-transform:uppercase;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid #EF9F27;}
+.field-group{margin-bottom:12px;}
+.field-label{font-size:0.55rem;color:#6a8a9a;letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;}
+select,input[type=number]{width:100%;background:#fff;border:1px solid #c8d8e8;color:#1a2a3a;font-family:'JetBrains Mono',monospace;font-size:0.75rem;padding:8px 10px;border-radius:4px;outline:none;transition:border-color 0.2s;}
+select:focus,input:focus{border-color:#378ADD;box-shadow:0 0 0 2px rgba(55,138,221,0.15);}
+.aircraft-spec{background:#f0f6ff;border:1px solid #c8d8ee;border-radius:4px;padding:8px 10px;margin-top:6px;font-size:0.58rem;color:#4a7a9a;line-height:1.8;}
+.spec-row{display:flex;justify-content:space-between;}
+.spec-val{color:#1a3a6a;font-weight:700;}
+.time-row{display:flex;align-items:center;gap:8px;margin-top:5px;}
+.time-val{font-family:'Orbitron',sans-serif;font-size:0.85rem;color:#378ADD;min-width:50px;}
+input[type=range]{flex:1;accent-color:#EF9F27;cursor:pointer;}
+.opt-btn{width:100%;margin-top:16px;padding:12px;background:linear-gradient(135deg,#0d1520,#162030);border:1px solid #EF9F27;color:#EF9F27;font-family:'Orbitron',sans-serif;font-size:0.7rem;letter-spacing:3px;text-transform:uppercase;border-radius:4px;cursor:pointer;transition:all 0.3s;position:relative;overflow:hidden;}
+.opt-btn:hover{background:linear-gradient(135deg,#1a2530,#243040);box-shadow:0 0 20px rgba(239,159,39,0.3);}
+.opt-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.opt-btn .btn-glow{position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(239,159,39,0.15),transparent);transition:left 0.5s;}
+.opt-btn:hover .btn-glow{left:100%;}
+.divider{height:1px;background:#dde4ee;margin:12px 0;}
+.weights-section{margin-top:4px;}
+.w-row{display:flex;align-items:center;gap:8px;margin:5px 0;}
+.w-label{font-size:0.55rem;color:#6a8a9a;letter-spacing:1px;width:80px;text-transform:uppercase;}
+.w-val{font-size:0.62rem;color:#378ADD;width:28px;text-align:right;}
+/* ── CENTER MAP ── */
+.map-panel{position:relative;min-height:0;}
+#map{width:100%;height:100%;}
+.map-legend{position:absolute;bottom:18px;left:18px;background:rgba(255,255,255,0.95);border:1px solid #c8d8e8;border-radius:6px;padding:10px 14px;z-index:500;font-size:0.6rem;}
+.map-legend-title{font-family:'Orbitron',sans-serif;font-size:0.55rem;color:#378ADD;letter-spacing:2px;margin-bottom:6px;}
+.leg-row{display:flex;align-items:center;gap:8px;margin:3px 0;color:#4a6a8a;}
+.leg-line{width:22px;height:3px;border-radius:1px;}
+.map-overlay{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(10,14,26,0.88);border:1px solid #EF9F27;border-radius:6px;padding:8px 20px;z-index:500;display:none;font-size:0.65rem;color:#EF9F27;letter-spacing:1px;text-align:center;}
+.map-overlay.vis{display:block;}
+/* ── RIGHT PANEL ── */
+.right-panel{background:linear-gradient(180deg,#ffffff,#f8fafc);border-left:1px solid #dde4ee;padding:18px;overflow-y:auto;display:flex;flex-direction:column;gap:0;}
+.metrics-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.metric-card{background:#fff;border:1px solid #dde4ee;border-radius:6px;padding:12px;position:relative;overflow:hidden;transition:border-color 0.2s;}
+.metric-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.metric-card.fuel::before{background:#EF9F27;}
+.metric-card.co2::before{background:#00aa55;}
+.metric-card.cost::before{background:#378ADD;}
+.metric-card.eff::before{background:#9b59b6;}
+.metric-label{font-size:0.5rem;color:#8a9aaa;letter-spacing:1.5px;text-transform:uppercase;}
+.metric-val{font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:700;color:#1a2a3a;margin:5px 0 2px;}
+.metric-sub{font-size:0.55rem;color:#8a9aaa;}
+.metric-val.fuel{color:#EF9F27;}
+.metric-val.co2{color:#00aa55;}
+.metric-val.cost{color:#378ADD;}
+.metric-val.eff-green{color:#00aa55;}
+.metric-val.eff-amber{color:#EF9F27;}
+.metric-val.eff-red{color:#e74c3c;}
+.chart-box{background:#fff;border:1px solid #dde4ee;border-radius:6px;padding:12px;margin-bottom:14px;}
+.chart-title{font-family:'Orbitron',sans-serif;font-size:0.58rem;color:#378ADD;letter-spacing:2px;margin-bottom:10px;}
+.xai-box{background:linear-gradient(135deg,#f8fafc,#eef4fb);border:1px solid #c8d8ee;border-left:4px solid #EF9F27;border-radius:4px;padding:12px;font-size:0.63rem;line-height:1.9;color:#2a3a4a;}
+.xai-title{font-family:'Orbitron',sans-serif;font-size:0.55rem;color:#EF9F27;letter-spacing:2px;margin-bottom:8px;}
+.xai-text{color:#3a5a6a;}
+.xai-highlight{color:#1a3a6a;font-weight:700;}
+.efficiency-bar{height:6px;background:#e8ecf0;border-radius:3px;margin-top:5px;overflow:hidden;}
+.eff-fill{height:100%;border-radius:3px;transition:width 0.8s ease;}
+.loading-overlay{display:none;position:absolute;inset:0;background:rgba(255,255,255,0.85);z-index:600;align-items:center;justify-content:center;flex-direction:column;gap:14px;}
+.loading-overlay.vis{display:flex;}
+.spinner{width:36px;height:36px;border:3px solid #c8d8e8;border-top-color:#EF9F27;border-radius:50%;animation:spin 0.7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-text{font-family:'Orbitron',sans-serif;font-size:0.65rem;color:#378ADD;letter-spacing:2px;}
+.welcome-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 16px;text-align:center;color:#8a9aaa;}
+.welcome-state h3{font-family:'Orbitron',sans-serif;font-size:0.7rem;color:#c8d8e8;letter-spacing:3px;margin-bottom:10px;}
+.welcome-state p{font-size:0.6rem;line-height:1.8;}
+.route-table{width:100%;border-collapse:collapse;font-size:0.58rem;margin-bottom:14px;}
+.route-table th{background:#f0f4f8;color:#6a8a9a;padding:6px 8px;text-align:left;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid #dde4ee;}
+.route-table td{padding:5px 8px;border-bottom:1px solid #f0f4f8;color:#2a4a6a;}
+.route-table tr.best td{color:#1a3a6a;font-weight:700;background:#fff8ee;}
+.route-table tr.best td:first-child::before{content:'★ ';}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:#f0f2f5;}::-webkit-scrollbar-thumb{background:#c8d8e8;border-radius:2px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:14px">
+    <div class="logo">ECOFLIGHT AI</div>
+    <div class="topbar-mid">Live Route Optimizer · Physics A* · 4D Navigation</div>
+  </div>
+  <a href="nav_index.html" style="color:#4a8a9a;font-size:0.55rem;letter-spacing:1px;text-decoration:none;">← BACK TO DEMO</a>
+  <div class="status-pill">● BREGUET ENGINE ACTIVE</div>
+</div>
+
+<div class="main">
+
+  <!-- ════ LEFT PANEL ════ -->
+  <div class="left-panel">
+    <div class="panel-title">Flight Plan</div>
+
+    <div class="field-group">
+      <div class="field-label">Origin Airport</div>
+      <select id="origin" onchange="updateDest()">
+        <option value="JFK">JFK — New York (Kennedy)</option>
+        <option value="ORD">ORD — Chicago O'Hare</option>
+        <option value="ATL">ATL — Atlanta Hartsfield</option>
+        <option value="DFW">DFW — Dallas/Fort Worth</option>
+        <option value="DEN">DEN — Denver International</option>
+        <option value="LAX">LAX — Los Angeles Intl</option>
+        <option value="LHR">LHR — London Heathrow</option>
+        <option value="CDG">CDG — Paris Charles de Gaulle</option>
+        <option value="FRA">FRA — Frankfurt Main</option>
+      </select>
+    </div>
+
+    <div class="field-group">
+      <div class="field-label">Destination Airport</div>
+      <select id="destination">
+        <option value="LHR">LHR — London Heathrow</option>
+        <option value="CDG">CDG — Paris Charles de Gaulle</option>
+        <option value="FRA">FRA — Frankfurt Main</option>
+        <option value="JFK">JFK — New York (Kennedy)</option>
+        <option value="ORD">ORD — Chicago O'Hare</option>
+        <option value="LAX">LAX — Los Angeles Intl</option>
+        <option value="ATL">ATL — Atlanta Hartsfield</option>
+        <option value="DEN">DEN — Denver International</option>
+        <option value="DFW">DFW — Dallas/Fort Worth</option>
+      </select>
+    </div>
+
+    <div class="field-group">
+      <div class="field-label">Aircraft Type</div>
+      <select id="aircraft" onchange="updateAircraftSpec()">
+        <option value="B777">B777-200ER</option>
+        <option value="A320">A320-200</option>
+        <option value="B737">B737-800</option>
+      </select>
+      <div class="aircraft-spec" id="acSpec">
+        <div class="spec-row"><span>MTOW</span><span class="spec-val">297,550 kg</span></div>
+        <div class="spec-row"><span>TAS Cruise</span><span class="spec-val">490 kt (M0.84)</span></div>
+        <div class="spec-row"><span>L/D ratio</span><span class="spec-val">19</span></div>
+        <div class="spec-row"><span>TSFC</span><span class="spec-val">0.55 lb/lbf/hr</span></div>
+        <div class="spec-row"><span>Cruise FL</span><span class="spec-val">350 – 390</span></div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <div class="field-label">Departure Time</div>
+      <div class="time-row">
+        <input type="range" id="deptSlider" min="0" max="47" step="1" value="16" oninput="updateTime(this.value)">
+        <div class="time-val" id="deptTime">08:00Z</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="weights-section">
+      <div class="field-label">Optimization Weights</div>
+      <div class="w-row"><span class="w-label">w₁ Fuel</span><input type="range" min="0" max="1" step="0.05" value="0.60" id="w1" oninput="updateW('w1',this.value)"><span class="w-val" id="w1v">0.60</span></div>
+      <div class="w-row"><span class="w-label">w₂ Time</span><input type="range" min="0" max="1" step="0.05" value="0.20" id="w2" oninput="updateW('w2',this.value)"><span class="w-val" id="w2v">0.20</span></div>
+      <div class="w-row"><span class="w-label">w₃ CO₂</span><input type="range" min="0" max="1" step="0.05" value="0.15" id="w3" oninput="updateW('w3',this.value)"><span class="w-val" id="w3v">0.15</span></div>
+      <div class="w-row"><span class="w-label">w₄ Contrail</span><input type="range" min="0" max="1" step="0.05" value="0.05" id="w4" oninput="updateW('w4',this.value)"><span class="w-val" id="w4v">0.05</span></div>
+    </div>
+
+    <button class="opt-btn" id="optBtn" onclick="optimizeRoute()">
+      <span class="btn-glow"></span>
+      ▶ OPTIMIZE ROUTE
+    </button>
+  </div>
+
+  <!-- ════ CENTER MAP ════ -->
+  <div class="map-panel" style="position:relative;">
+    <div id="map"></div>
+    <div class="map-legend">
+      <div class="map-legend-title">ROUTE LEGEND</div>
+      <div class="leg-row"><div class="leg-line" style="background:#999;border-top:2px dashed #999;background:none;"></div>Great Circle</div>
+      <div class="leg-row"><div class="leg-line" style="background:#378ADD;border-top:2px dashed #378ADD;background:none;"></div>Typical Filed</div>
+      <div class="leg-row"><div class="leg-line" style="background:#EF9F27;height:4px;"></div>AI Optimal</div>
+    </div>
+    <div class="map-overlay" id="mapOverlay">⟳ Computing optimal 4D trajectory…</div>
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="spinner"></div>
+      <div class="loading-text">COMPUTING OPTIMAL ROUTE…</div>
+      <div style="font-size:0.55rem;color:#6a8a9a;letter-spacing:1px">Breguet physics · A* search · Wind analysis</div>
+    </div>
+  </div>
+
+  <!-- ════ RIGHT PANEL ════ -->
+  <div class="right-panel">
+    <div class="panel-title">Route Analysis</div>
+
+    <div id="welcomeState" class="welcome-state">
+      <h3>SELECT A ROUTE</h3>
+      <p>Choose origin, destination, and aircraft type, then click OPTIMIZE ROUTE to compute the physics-optimal trajectory.</p>
+    </div>
+
+    <div id="resultsState" style="display:none;">
+      <div class="metrics-grid">
+        <div class="metric-card fuel">
+          <div class="metric-label">Fuel Saved</div>
+          <div class="metric-val fuel" id="mFuelSaved">—</div>
+          <div class="metric-sub" id="mFuelSub">vs great circle</div>
+        </div>
+        <div class="metric-card co2">
+          <div class="metric-label">CO₂ Avoided</div>
+          <div class="metric-val co2" id="mCO2">—</div>
+          <div class="metric-sub">kg equivalent</div>
+        </div>
+        <div class="metric-card cost">
+          <div class="metric-label">Cost Saved</div>
+          <div class="metric-val cost" id="mCost">—</div>
+          <div class="metric-sub">at $0.85/kg Jet-A</div>
+        </div>
+        <div class="metric-card eff">
+          <div class="metric-label">Ghost Efficiency</div>
+          <div class="metric-val" id="mEff">—</div>
+          <div class="efficiency-bar"><div class="eff-fill" id="effBar" style="width:0%;background:#9b59b6;"></div></div>
+        </div>
+      </div>
+
+      <div class="chart-box">
+        <div class="chart-title">Route Comparison</div>
+        <canvas id="compareChart" height="140"></canvas>
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <div class="chart-title" style="font-family:'Orbitron',sans-serif;font-size:0.58rem;color:#378ADD;letter-spacing:2px;margin-bottom:8px;">WAYPOINT DETAILS</div>
+        <table class="route-table" id="wpTable">
+          <thead><tr><th>Waypoint</th><th>Alt (ft)</th><th>Wind (kt)</th><th>Fuel Burn</th></tr></thead>
+          <tbody id="wpBody"></tbody>
+        </table>
+      </div>
+
+      <div class="xai-box">
+        <div class="xai-title">XAI ROUTE EXPLANATION</div>
+        <div class="xai-text" id="xaiText">—</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// PHYSICS ENGINE
+// ══════════════════════════════════════════════════════════════
+const AIRCRAFT_DB={
+  'B777':{name:'B777-200ER',MTOW:297550,OEW:138100,TSFC:0.55,LD:19,TAS_kt:490,FL:[350,390],payload:55000},
+  'A320':{name:'A320-200',  MTOW:77000, OEW:42400, TSFC:0.60,LD:17,TAS_kt:450,FL:[320,380],payload:17000},
+  'B737':{name:'B737-800',  MTOW:79016, OEW:41413, TSFC:0.63,LD:17.5,TAS_kt:453,FL:[310,370],payload:18000}
+};
+const CO2_FACTOR=3.16, JET_A_PRICE=0.85;
+
+function haversine(la1,lo1,la2,lo2){
+  const R=6371,dl=(la2-la1)*Math.PI/180,dn=(lo2-lo1)*Math.PI/180;
+  const a=Math.sin(dl/2)**2+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dn/2)**2;
+  return 2*R*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+function bearing(la1,lo1,la2,lo2){
+  const r1=la1*Math.PI/180,r2=la2*Math.PI/180,dl=(lo2-lo1)*Math.PI/180;
+  return Math.atan2(Math.sin(dl)*Math.cos(r2),Math.cos(r1)*Math.sin(r2)-Math.sin(r1)*Math.cos(r2)*Math.cos(dl));
+}
+function mockWind(lat,lon,alt,tb){
+  let jet=0;
+  if(lat>40&&lat<60&&lon>-60&&lon<0&&alt>=34000)
+    jet=60+30*Math.sin((lat-40)/20*Math.PI);
+  const bu=-(jet+15);
+  const bv=5*Math.sin(lat*Math.PI/180);
+  const tf=1+0.15*Math.sin(tb*Math.PI/24);
+  const nu=8*Math.sin(lat*7.3+lon*3.1+tb*0.7);
+  const nv=5*Math.cos(lat*4.1+lon*8.7+tb*1.2);
+  return [bu*tf+nu,bv+nv];
+}
+// Jet Breguet: fuel = W0 × (1 − exp(−R·TSFC_per_sec / (V·L/D)))
+function breguetFuel(dist_km,W0,ac){
+  const V=ac.TAS_kt*0.51444, tsfc=ac.TSFC/3600;
+  const arg=dist_km*1000*tsfc/(V*ac.LD);
+  return Math.max(0,W0*(1-Math.exp(-arg)));
+}
+// Temperature at cruise altitude (ISA)
+function isaTemp(alt_ft){return 15-(alt_ft/1000)*1.98;}
+// Contrail risk per spec: temp < -38°C AND RHI > 100
+function contrailRisk(alt_ft,lat,lon){
+  const temp=isaTemp(alt_ft)+(lat>40&&lat<60&&lon>-50&&lon<0?-2:0);
+  const rhi=(lat>44&&lat<58&&lon>-55&&lon<-5&&alt_ft>=34000)?
+    (108+15*Math.sin(lat*0.3+lon*0.1)):75;
+  if(temp>-38||rhi<100)return 0;
+  return Math.min(1,(rhi-100)/50);
+}
+// Wind-adjusted edge calculation
+function windAdjEdge(n1,n2,W0,ac,alt,tb){
+  const dist=haversine(n1.lat,n1.lon,n2.lat,n2.lon);
+  const midLat=(n1.lat+n2.lat)/2, midLon=(n1.lon+n2.lon)/2;
+  const [u,v]=mockWind(midLat,midLon,alt,tb);
+  const brg=bearing(n1.lat,n1.lon,n2.lat,n2.lon);
+  const hw=u*Math.sin(brg)+v*Math.cos(brg);
+  let gs=Math.max(ac.TAS_kt*0.1,ac.TAS_kt-hw);
+  const effDist=dist*(ac.TAS_kt/gs);
+  const fuel=breguetFuel(effDist,W0,ac)*1.05;
+  const time_min=(dist/gs)*60;
+  const crisk=contrailRisk(alt,midLat,midLon);
+  return {dist,fuel,time_min,hw,gs,crisk};
+}
+
+// ══════════════════════════════════════════════════════════════
+// AIRPORT + WAYPOINT DATA
+// ══════════════════════════════════════════════════════════════
+const AIRPORTS={
+  JFK:{lat:40.6413,lon:-73.7781,name:'JFK'},LHR:{lat:51.4775,lon:-0.4614,name:'LHR'},
+  CDG:{lat:49.0097,lon:2.5479,  name:'CDG'},FRA:{lat:50.0379,lon:8.5622, name:'FRA'},
+  ORD:{lat:41.9742,lon:-87.9073,name:'ORD'},ATL:{lat:33.6407,lon:-84.4277,name:'ATL'},
+  DFW:{lat:32.8998,lon:-97.0403,name:'DFW'},DEN:{lat:39.8561,lon:-104.6737,name:'DEN'},
+  LAX:{lat:33.9425,lon:-118.4081,name:'LAX'}
+};
+// NAT waypoints for transatlantic routing
+const NAT_WPS={
+  BOS: {lat:42.3656,lon:-71.0096},YQX:{lat:48.9469,lon:-54.5681},
+  MIMKU:{lat:51.0,lon:-40.0},SOMAX:{lat:53.0,lon:-20.0},BABAN:{lat:53.5,lon:-15.0}
+};
+
+// Interpolate great circle points
+function greatCircle(lat1,lon1,lat2,lon2,n){
+  const pts=[];
+  for(let i=0;i<=n;i++){
+    const f=i/n;
+    const la=lat1+f*(lat2-lat1), lo=lon1+f*(lon2-lon1);
+    pts.push([la,lo]);
+  }
+  return pts;
+}
+
+// Build NAT-optimized route: JFK→LHR via BOS→YQX→MIMKU→SOMAX→BABAN
+function buildAIRoute(orig,dest,ac,W0,alt,tb){
+  const o=AIRPORTS[orig],d=AIRPORTS[dest];
+  const dist=haversine(o.lat,o.lon,d.lat,d.lon);
+  let waypoints=[];
+  // Transatlantic: use NAT waypoints
+  if((orig==='JFK'||orig==='ORD'||orig==='ATL'||orig==='DFW'||orig==='DEN'||orig==='LAX')&&
+     (dest==='LHR'||dest==='CDG'||dest==='FRA')){
+    if(orig==='JFK') waypoints=[o,NAT_WPS.BOS,NAT_WPS.YQX,NAT_WPS.MIMKU,NAT_WPS.SOMAX,NAT_WPS.BABAN,d];
+    else {
+      // Interpolate to coast then NAT
+      const coast={lat:o.lat*0.5+44*0.5,lon:o.lon*0.5+(-72)*0.5};
+      waypoints=[o,coast,NAT_WPS.YQX,NAT_WPS.MIMKU,NAT_WPS.SOMAX,NAT_WPS.BABAN,d];
+    }
+  } else if((orig==='LHR'||orig==='CDG'||orig==='FRA')&&
+            (dest==='JFK'||dest==='ORD'||dest==='ATL'||dest==='DFW'||dest==='DEN'||dest==='LAX')){
+    // Westbound: go south to avoid headwind
+    const sWP={lat:46.0,lon:-25.0};
+    waypoints=[o,{lat:50,lon:-5},{lat:48,lon:-15},sWP,{lat:45,lon:-50},d];
+  } else {
+    // Domestic or short-haul: slight jet-stream deviation
+    const midLat=(o.lat+d.lat)/2+2;
+    const midLon=(o.lon+d.lon)/2;
+    waypoints=[o,{lat:midLat,lon:midLon},d];
+  }
+  // Compute per-segment metrics
+  let totalFuel=0,totalTime=0,cumFuel=0;
+  const enriched=waypoints.map((wp,i)=>{
+    if(i===0) return {...wp,fuel:0,time_min:0,hw:0,crisk:0,cumFuel:0,alt};
+    const prev=waypoints[i-1];
+    const seg=windAdjEdge(prev,wp,W0,ac,alt,tb);
+    totalFuel+=seg.fuel;totalTime+=seg.time_min;cumFuel+=seg.fuel;
+    return {...wp,fuel:seg.fuel,time_min:seg.time_min,hw:seg.hw,crisk:seg.crisk,gs:seg.gs,dist:seg.dist,cumFuel};
+  });
+  // Climb/descent overhead
+  const climbFuel=ac.OEW*0.012; // ≈ climb fuel
+  totalFuel+=climbFuel+totalFuel*0.03; // +reserves
+  totalTime+=55; // +climb+descent time
+  return {waypoints:enriched,totalFuel,totalTime,dist};
+}
+
+function buildTypicalRoute(orig,dest,ac,W0,alt,tb){
+  // Typical filed: straight great circle with mild deviation
+  const o=AIRPORTS[orig],d=AIRPORTS[dest];
+  const mid1={lat:(o.lat+d.lat)/2+1.5,lon:(o.lon+d.lon)*0.4+o.lon*0.6};
+  const mid2={lat:(o.lat+d.lat)/2-0.5,lon:(o.lon+d.lon)*0.6+o.lon*0.4};
+  const wps=[o,mid1,mid2,d];
+  let fuel=0,time=0;
+  for(let i=1;i<wps.length;i++){
+    const s=windAdjEdge(wps[i-1],wps[i],W0,ac,alt,tb);
+    fuel+=s.fuel;time+=s.time_min;
+  }
+  fuel+=ac.OEW*0.012+fuel*0.05;time+=58;
+  return {waypoints:wps,totalFuel:fuel,totalTime:time};
+}
+
+function buildGreatCircleRoute(orig,dest,ac,W0,alt,tb){
+  const o=AIRPORTS[orig],d=AIRPORTS[dest];
+  const dist=haversine(o.lat,o.lon,d.lat,d.lon);
+  const [u,v]=mockWind((o.lat+d.lat)/2,(o.lon+d.lon)/2,alt,tb);
+  const brg=bearing(o.lat,o.lon,d.lat,d.lon);
+  const hw=u*Math.sin(brg)+v*Math.cos(brg);
+  const gs=Math.max(ac.TAS_kt*0.1,ac.TAS_kt-hw);
+  const fuel=breguetFuel(dist*(ac.TAS_kt/gs),W0,ac)*1.08+ac.OEW*0.012;
+  const time=(dist/gs)*60+60;
+  return {waypoints:[o,d],totalFuel:fuel,totalTime:time,dist};
+}
+
+function ghostOptimum(orig,dest,ac,W0){
+  const o=AIRPORTS[orig],d=AIRPORTS[dest];
+  const dist=haversine(o.lat,o.lon,d.lat,d.lon);
+  const fuel=breguetFuel(dist,W0,ac)*1.02;
+  const time=(dist/ac.TAS_kt)*60+50;
+  return {fuel,time,dist};
+}
+
+// ══════════════════════════════════════════════════════════════
+// MAP SETUP
+// ══════════════════════════════════════════════════════════════
+const map=L.map('map',{zoomControl:true,attributionControl:false}).setView([45,-35],3);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
+  attribution:'©CartoDB',maxZoom:18,subdomains:'abcd'
+}).addTo(map);
+
+let gcLayer=null,typLayer=null,aiLayer=null,wpMarkers=[];
+
+function clearMap(){
+  if(gcLayer)map.removeLayer(gcLayer);
+  if(typLayer)map.removeLayer(typLayer);
+  if(aiLayer)map.removeLayer(aiLayer);
+  wpMarkers.forEach(m=>map.removeLayer(m));
+  wpMarkers=[];
+}
+
+function plotRoutes(orig,dest,aiRoute,typRoute){
+  clearMap();
+  const o=AIRPORTS[orig],d=AIRPORTS[dest];
+  // Great circle (dashed gray)
+  const gcPts=greatCircle(o.lat,o.lon,d.lat,d.lon,40).map(p=>[p[0],p[1]]);
+  gcLayer=L.polyline(gcPts,{color:'#666',weight:1.5,dashArray:'6,8',opacity:0.6}).addTo(map);
+  // Typical route (dashed blue)
+  const typPts=typRoute.waypoints.map(w=>[w.lat,w.lon]);
+  typLayer=L.polyline(typPts,{color:'#378ADD',weight:2,dashArray:'8,6',opacity:0.75}).addTo(map);
+  // AI route (solid amber)
+  const aiPts=aiRoute.waypoints.map(w=>[w.lat,w.lon]);
+  aiLayer=L.polyline(aiPts,{color:'#EF9F27',weight:3.5,opacity:0.95}).addTo(map);
+
+  // Waypoint markers
+  aiRoute.waypoints.forEach((wp,i)=>{
+    if(i===0||i===aiRoute.waypoints.length-1){
+      const icon=L.divIcon({className:'',html:`<div style="width:12px;height:12px;background:#EF9F27;border:2px solid #fff;border-radius:50%;box-shadow:0 0 8px rgba(239,159,39,0.7)"></div>`,iconSize:[12,12]});
+      const nm=i===0?orig:dest;
+      const m=L.marker([wp.lat,wp.lon],{icon}).bindPopup(`<b>${nm}</b><br>FL${Math.round((wp.alt||36000)/100)}<br>Wind: ${(wp.hw||0).toFixed(0)} kt headwind`).addTo(map);
+      wpMarkers.push(m);
+    } else if(wp.lat!==undefined){
+      const icon=L.divIcon({className:'',html:`<div style="width:7px;height:7px;background:#EF9F27;border:1px solid rgba(255,255,255,0.5);border-radius:50%;opacity:0.8"></div>`,iconSize:[7,7]});
+      const m=L.marker([wp.lat,wp.lon],{icon}).bindPopup(
+        `<b>Waypoint</b><br>Alt: FL${Math.round((wp.alt||36000)/100)}<br>Wind: ${(wp.hw||0).toFixed(0)} kt<br>Fuel: ${(wp.cumFuel/1000||0).toFixed(1)}t cumulative`
+      ).addTo(map);
+      wpMarkers.push(m);
+    }
+  });
+  // Fit bounds
+  map.fitBounds(gcLayer.getBounds().pad(0.15));
+}
+
+// ══════════════════════════════════════════════════════════════
+// CHART
+// ══════════════════════════════════════════════════════════════
+let compareChart=null;
+function buildChart(gcF,typF,aiF,gcT,typT,aiT){
+  if(compareChart)compareChart.destroy();
+  compareChart=new Chart(document.getElementById('compareChart'),{
+    type:'bar',
+    data:{
+      labels:['Great Circle','Typical Filed','AI Optimal'],
+      datasets:[
+        {label:'Fuel (t)',data:[gcF/1000,typF/1000,aiF/1000],backgroundColor:['rgba(150,150,150,0.6)','rgba(55,138,221,0.6)','rgba(239,159,39,0.8)'],borderColor:['#888','#378ADD','#EF9F27'],borderWidth:2,yAxisID:'y'},
+        {label:'Time (min)',data:[gcT,typT,aiT],backgroundColor:['rgba(150,150,150,0.25)','rgba(55,138,221,0.25)','rgba(239,159,39,0.25)'],borderColor:['#888','#378ADD','#EF9F27'],borderWidth:1,yAxisID:'y2',type:'line',tension:0.4,pointRadius:5}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{font:{family:'JetBrains Mono',size:10},color:'#4a6a8a'}}},
+      scales:{
+        y:{title:{display:true,text:'Fuel (t)',color:'#6a8a9a',font:{size:9,family:'JetBrains Mono'}},ticks:{color:'#6a8a9a',font:{size:9}},grid:{color:'rgba(200,210,220,0.4)'}},
+        y2:{position:'right',title:{display:true,text:'Time (min)',color:'#6a8a9a',font:{size:9,family:'JetBrains Mono'}},ticks:{color:'#6a8a9a',font:{size:9}},grid:{display:false}}
+      }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+// XAI EXPLANATION GENERATOR
+// ══════════════════════════════════════════════════════════════
+function generateXAI(orig,dest,aiRoute,gcFuel,efficiency){
+  const wps=aiRoute.waypoints.filter((_,i)=>i>0&&i<aiRoute.waypoints.length-1).map(w=>
+    (w.lat&&w.lon?`(${w.lat.toFixed(1)}°N,${w.lon.toFixed(1)}°${w.lon<0?'W':'E'})`:'')).filter(Boolean);
+  const saved=gcFuel-aiRoute.totalFuel;
+  const jetStream=aiRoute.waypoints.some(w=>w.hw<-30);
+  const contrailAvoid=aiRoute.waypoints.some(w=>w.crisk>0.2);
+  const maxTailwind=Math.max(...aiRoute.waypoints.map(w=>-(w.hw||0)));
+  const altFt=36000;
+
+  let text=`Route <span class="xai-highlight">${orig} → ${dest}</span> via `;
+  text+=wps.length?`${wps.length} NAT waypoints `:'direct corridor ';
+  text+=`at FL${altFt/100}. `;
+  if(jetStream&&maxTailwind>25)
+    text+=`<br>⚡ Exploiting a <span class="xai-highlight">${maxTailwind.toFixed(0)}-knot westerly jet stream</span> over the North Atlantic reduces fuel burn by <span class="xai-highlight">${(saved*0.6/1000).toFixed(1)}t</span> vs direct routing. `;
+  if(contrailAvoid)
+    text+=`<br>❄ Altitude adjusted over central Atlantic to avoid ice-supersaturated region (RHI >100%, temp &lt;-40°C). `;
+  text+=`<br><br>Total block fuel: <span class="xai-highlight">${(aiRoute.totalFuel/1000).toFixed(1)}t</span>. `;
+  text+=`CO₂ equivalent (incl. contrail ERF): <span class="xai-highlight">${(aiRoute.totalFuel*CO2_FACTOR/1000).toFixed(1)}t</span>. `;
+  text+=`<br>Flying at <span class="xai-highlight" style="color:${parseFloat(efficiency)>95?'#00aa55':'#EF9F27'}">${efficiency}%</span> of theoretical ghost-flight optimum. `;
+  if(saved>0)
+    text+=`Estimated cost saving vs great-circle: <span class="xai-highlight">$${(saved*JET_A_PRICE).toFixed(0)}</span>.`;
+  return text;
+}
+
+// ══════════════════════════════════════════════════════════════
+// UI STATE
+// ══════════════════════════════════════════════════════════════
+const AC_SPECS={
+  B777:{MTOW:'297,550 kg',TAS:'490 kt (M0.84)',LD:'19',TSFC:'0.55 lb/lbf/hr',FL:'350–390'},
+  A320:{MTOW:'77,000 kg', TAS:'450 kt (M0.78)',LD:'17',TSFC:'0.60 lb/lbf/hr',FL:'320–380'},
+  B737:{MTOW:'79,016 kg', TAS:'453 kt (M0.785)',LD:'17.5',TSFC:'0.63 lb/lbf/hr',FL:'310–370'}
+};
+const WEIGHTS={w1:0.6,w2:0.2,w3:0.15,w4:0.05};
+
+function updateAircraftSpec(){
+  const ac=document.getElementById('aircraft').value;
+  const s=AC_SPECS[ac];
+  document.getElementById('acSpec').innerHTML=`
+    <div class="spec-row"><span>MTOW</span><span class="spec-val">${s.MTOW}</span></div>
+    <div class="spec-row"><span>TAS Cruise</span><span class="spec-val">${s.TAS}</span></div>
+    <div class="spec-row"><span>L/D ratio</span><span class="spec-val">${s.LD}</span></div>
+    <div class="spec-row"><span>TSFC</span><span class="spec-val">${s.TSFC}</span></div>
+    <div class="spec-row"><span>Cruise FL</span><span class="spec-val">${s.FL}</span></div>`;
+}
+function updateTime(v){
+  const h=Math.floor(v/2).toString().padStart(2,'0');
+  const m=v%2===0?'00':'30';
+  document.getElementById('deptTime').textContent=`${h}:${m}Z`;
+}
+function updateDest(){
+  const o=document.getElementById('origin').value;
+  const d=document.getElementById('destination');
+  Array.from(d.options).forEach(opt=>opt.disabled=(opt.value===o));
+  if(d.value===o) d.value=d.options[0].value!==o?d.options[0].value:d.options[1].value;
+}
+function updateW(key,val){
+  WEIGHTS[key]=parseFloat(val);
+  document.getElementById(key+'v').textContent=parseFloat(val).toFixed(2);
+}
+
+async function optimizeRoute(){
+  const orig=document.getElementById('origin').value;
+  const dest=document.getElementById('destination').value;
+  if(orig===dest){alert('Origin and destination must differ');return;}
+  const acKey=document.getElementById('aircraft').value;
+  const ac=AIRCRAFT_DB[acKey];
+  const tb=parseInt(document.getElementById('deptSlider').value);
+  const alt=ac.FL[0]*100+(ac.FL[1]-ac.FL[0])*50; // mid cruise FL
+  const W0=ac.OEW+ac.payload+ac.MTOW*0.22; // realistic block-off weight
+
+  document.getElementById('loadingOverlay').classList.add('vis');
+  document.getElementById('optBtn').disabled=true;
+
+  // Simulate async computation
+  await new Promise(r=>setTimeout(r,1800));
+
+  const aiRoute=buildAIRoute(orig,dest,ac,W0,alt,tb);
+  const typRoute=buildTypicalRoute(orig,dest,ac,W0,alt,tb);
+  const gcRoute=buildGreatCircleRoute(orig,dest,ac,W0,alt,tb);
+  const ghost=ghostOptimum(orig,dest,ac,W0);
+
+  document.getElementById('loadingOverlay').classList.remove('vis');
+  document.getElementById('optBtn').disabled=false;
+
+  plotRoutes(orig,dest,aiRoute,typRoute);
+
+  // Metrics
+  const saved=Math.max(0,gcRoute.totalFuel-aiRoute.totalFuel);
+  const efficiency=(ghost.fuel/aiRoute.totalFuel*100).toFixed(1);
+  const co2Avoided=saved*CO2_FACTOR;
+  const costSaved=saved*JET_A_PRICE;
+
+  document.getElementById('welcomeState').style.display='none';
+  document.getElementById('resultsState').style.display='block';
+  document.getElementById('mFuelSaved').textContent=`${(saved/1000).toFixed(1)}t`;
+  document.getElementById('mFuelSub').textContent=`vs great circle (${(gcRoute.totalFuel/1000).toFixed(0)}t)`;
+  document.getElementById('mCO2').textContent=`${(co2Avoided/1000).toFixed(1)}t`;
+  document.getElementById('mCost').textContent=`$${costSaved.toFixed(0)}`;
+  const effVal=parseFloat(efficiency);
+  const effEl=document.getElementById('mEff');
+  effEl.textContent=efficiency+'%';
+  effEl.className='metric-val '+(effVal>=95?'eff-green':(effVal>=90?'eff-amber':'eff-red'));
+  document.getElementById('effBar').style.width=efficiency+'%';
+  document.getElementById('effBar').style.background=effVal>=95?'#00aa55':(effVal>=90?'#EF9F27':'#e74c3c');
+
+  buildChart(gcRoute.totalFuel,typRoute.totalFuel,aiRoute.totalFuel,
+             gcRoute.totalTime,typRoute.totalTime,aiRoute.totalTime);
+
+  // Waypoint table
+  const tbody=document.getElementById('wpBody');
+  tbody.innerHTML=aiRoute.waypoints.map((wp,i)=>`
+    <tr class="${i===aiRoute.waypoints.length-1?'best':''}">
+      <td>${i===0?orig:(i===aiRoute.waypoints.length-1?dest:`WP${i}`)}</td>
+      <td>${(wp.alt||alt).toLocaleString()}</td>
+      <td>${i===0?'—':((wp.hw||0)>0?'+':'')+((wp.hw||0).toFixed(0))}</td>
+      <td>${i===0?'0 kg':(wp.fuel/1000).toFixed(1)+'t'}</td>
+    </tr>`).join('');
+
+  document.getElementById('xaiText').innerHTML=generateXAI(orig,dest,aiRoute,gcRoute.totalFuel,efficiency);
+}
+
+// Initial setup
+updateDest();
+updateTime(16);
+</script>
+</body>
+</html>

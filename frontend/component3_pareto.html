@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EcoFlight AI — Pareto Frontier Analysis</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    /* ── Reset & base ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0a0e1a;
+      color: #c8d0e0;
+      min-height: 100vh;
+    }
+
+    /* ── Header ───────────────────────────────────────────────── */
+    header {
+      background: #0a0e1a;
+      border-bottom: 2px solid #EF9F27;
+      padding: 0 2rem;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 20px rgba(239,159,39,0.15);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+    }
+
+    .logo-text {
+      font-family: 'Courier New', monospace;
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: #EF9F27;
+      text-transform: uppercase;
+    }
+
+    .logo-text span {
+      color: #ffffff;
+    }
+
+    .header-meta {
+      font-family: 'Courier New', monospace;
+      font-size: 0.72rem;
+      color: #6a7a99;
+      text-align: right;
+      line-height: 1.5;
+    }
+
+    .header-badge {
+      background: rgba(239,159,39,0.15);
+      border: 1px solid rgba(239,159,39,0.4);
+      border-radius: 4px;
+      padding: 3px 10px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.65rem;
+      color: #EF9F27;
+      letter-spacing: 0.08em;
+    }
+
+    /* ── Page body ─────────────────────────────────────────────── */
+    .page-wrapper {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 3rem;
+    }
+
+    /* ── Section title ─────────────────────────────────────────── */
+    .section-title {
+      margin-bottom: 1.4rem;
+    }
+
+    .section-title h1 {
+      font-family: 'Courier New', monospace;
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .section-title h1 .accent { color: #EF9F27; }
+
+    .section-title p {
+      font-size: 0.82rem;
+      color: #6a7a99;
+      margin-top: 4px;
+      font-family: 'Courier New', monospace;
+    }
+
+    /* ── Stat row ─────────────────────────────────────────────── */
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.4rem;
+    }
+
+    .stat-card {
+      background: #0d1520;
+      border: 1px solid #1e2a40;
+      border-top: 2px solid #EF9F27;
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+    }
+
+    .stat-label {
+      font-family: 'Courier New', monospace;
+      font-size: 0.62rem;
+      color: #6a7a99;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-family: 'Courier New', monospace;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #EF9F27;
+    }
+
+    .stat-unit {
+      font-size: 0.65rem;
+      color: #8899bb;
+      margin-left: 3px;
+    }
+
+    /* ── Chart panel ──────────────────────────────────────────── */
+    .chart-panel {
+      background: #ffffff;
+      border-radius: 8px;
+      border: 1px solid #d0d8e8;
+      padding: 1.5rem 1.5rem 1rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .chart-title {
+      font-family: 'Courier New', monospace;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #1a2540;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .chart-route-label {
+      font-family: 'Courier New', monospace;
+      font-size: 0.7rem;
+      color: #6a7a99;
+      background: #f0f3f8;
+      border: 1px solid #d0d8e8;
+      border-radius: 4px;
+      padding: 3px 8px;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 380px;
+    }
+
+    .chart-legend {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid #e8ecf4;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      font-family: 'Courier New', monospace;
+      color: #4a5a7a;
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .legend-dot.gray   { background: rgba(150,150,150,0.7); }
+    .legend-dot.amber  { background: #EF9F27; }
+    .legend-dot.star   { background: #FFD700; border: 2px solid #cc9900; }
+
+    /* ── Priority banner ──────────────────────────────────────── */
+    .priority-banner {
+      background: #0d1520;
+      border: 1px solid #1e2a40;
+      border-left: 4px solid #EF9F27;
+      border-radius: 6px;
+      padding: 0.85rem 1.2rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .priority-mode {
+      font-family: 'Courier New', monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #EF9F27;
+      letter-spacing: 0.12em;
+    }
+
+    .priority-mode::before {
+      content: "▶ ";
+      color: #6a7a99;
+    }
+
+    .ghost-efficiency {
+      font-family: 'Courier New', monospace;
+      font-size: 0.8rem;
+      color: #8899bb;
+    }
+
+    .ghost-efficiency .eff-value {
+      color: #4ddd9a;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    /* ── Sliders ──────────────────────────────────────────────── */
+    .sliders-panel {
+      background: #0d1520;
+      border: 1px solid #1e2a40;
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .sliders-panel h2 {
+      font-family: 'Courier New', monospace;
+      font-size: 0.75rem;
+      color: #6a7a99;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 1.1rem;
+    }
+
+    .sliders-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem 2.5rem;
+    }
+
+    .slider-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .slider-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .slider-label {
+      font-family: 'Courier New', monospace;
+      font-size: 0.72rem;
+      color: #c8d0e0;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+
+    .slider-value {
+      font-family: 'Courier New', monospace;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #EF9F27;
+      min-width: 35px;
+      text-align: right;
+    }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 5px;
+      border-radius: 3px;
+      background: #1e2a40;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #EF9F27;
+      border: 2px solid #cc7a00;
+      cursor: pointer;
+      box-shadow: 0 0 6px rgba(239,159,39,0.5);
+      transition: box-shadow 0.15s;
+    }
+
+    input[type=range]::-webkit-slider-thumb:hover {
+      box-shadow: 0 0 12px rgba(239,159,39,0.8);
+    }
+
+    input[type=range]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #EF9F27;
+      border: 2px solid #cc7a00;
+      cursor: pointer;
+    }
+
+    .slider-hint {
+      font-family: 'Courier New', monospace;
+      font-size: 0.6rem;
+      color: #3a4a60;
+    }
+
+    /* ── Details panel ─────────────────────────────────────────── */
+    .details-panel {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .detail-card {
+      background: #0d1520;
+      border: 1px solid #1e2a40;
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+    }
+
+    .detail-card h3 {
+      font-family: 'Courier New', monospace;
+      font-size: 0.68rem;
+      color: #6a7a99;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid #1e2a40;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+    }
+
+    .detail-key {
+      font-family: 'Courier New', monospace;
+      font-size: 0.7rem;
+      color: #6a7a99;
+    }
+
+    .detail-val {
+      font-family: 'Courier New', monospace;
+      font-size: 0.7rem;
+      color: #c8d0e0;
+      font-weight: 600;
+    }
+
+    .detail-val.highlight { color: #EF9F27; }
+    .detail-val.green     { color: #4ddd9a; }
+
+    /* ── Back nav ─────────────────────────────────────────────── */
+    .back-nav {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.72rem;
+      color: #6a7a99;
+      text-decoration: none;
+      border: 1px solid #1e2a40;
+      border-radius: 4px;
+      padding: 5px 12px;
+      margin-bottom: 1.2rem;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .back-nav:hover { color: #EF9F27; border-color: rgba(239,159,39,0.4); }
+
+    /* ── Responsive ───────────────────────────────────────────── */
+    @media (max-width: 720px) {
+      .stat-row      { grid-template-columns: repeat(2, 1fr); }
+      .sliders-grid  { grid-template-columns: 1fr; }
+      .details-panel { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════
+     HEADER
+══════════════════════════════════════════════════════════════ -->
+<header>
+  <div class="logo">
+    <svg class="logo-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4 20 L16 6 L28 20 L22 20 L22 26 L10 26 L10 20 Z" fill="#EF9F27" opacity="0.9"/>
+      <path d="M16 6 L20 14 L16 12 L12 14 Z" fill="#FFD700"/>
+      <circle cx="16" cy="18" r="2.5" fill="#0a0e1a" stroke="#EF9F27" stroke-width="1.2"/>
+    </svg>
+    <div>
+      <div class="logo-text">EcoFlight <span>AI</span></div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:1rem;">
+    <span class="header-badge">COMPONENT 3 — PARETO FRONTIER</span>
+    <div class="header-meta">
+      JFK → LHR &nbsp;|&nbsp; B777-200ER<br>
+      5,540 km great circle
+    </div>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE CONTENT
+══════════════════════════════════════════════════════════════ -->
+<div class="page-wrapper">
+
+  <a href="nav_index.html" class="back-nav">← BACK TO MISSION CONTROL</a>
+
+  <div class="section-title">
+    <h1>Pareto-<span class="accent">Optimal</span> Route Frontier</h1>
+    <p>60 route variants plotted. Bubble size = CO₂-equivalent footprint. Amber frontier = non-dominated solutions.</p>
+  </div>
+
+  <!-- Stat cards -->
+  <div class="stat-row">
+    <div class="stat-card">
+      <div class="stat-label">Route Variants</div>
+      <div class="stat-value">60<span class="stat-unit">routes</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Pareto-Front Points</div>
+      <div class="stat-value" id="stat-pareto-count">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Optimal Fuel</div>
+      <div class="stat-value" id="stat-opt-fuel">—<span class="stat-unit">kg</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Ghost Efficiency</div>
+      <div class="stat-value" id="stat-ghost-eff">—<span class="stat-unit">%</span></div>
+    </div>
+  </div>
+
+  <!-- Priority banner -->
+  <div class="priority-banner">
+    <span class="priority-mode" id="priority-mode">BALANCED</span>
+    <span class="ghost-efficiency">
+      Ghost flight efficiency: <span class="eff-value" id="ghost-eff-display">—%</span>
+      &nbsp;|&nbsp; Breguet theoretical minimum: 40,621 kg
+    </span>
+  </div>
+
+  <!-- Chart -->
+  <div class="chart-panel">
+    <div class="chart-header">
+      <span class="chart-title">Objective Space — Fuel vs Flight Time (60 Route Variants)</span>
+      <span class="chart-route-label">JFK → LHR &nbsp; GC = 5,540 km</span>
+    </div>
+    <div class="chart-container">
+      <canvas id="paretoChart"></canvas>
+    </div>
+    <div class="chart-legend">
+      <div class="legend-item">
+        <div class="legend-dot gray"></div>
+        <span>Sub-optimal routes (56 variants)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot amber"></div>
+        <span>Pareto-optimal frontier</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot star"></div>
+        <span>Current weighted optimum</span>
+      </div>
+      <div class="legend-item" style="margin-left:auto;">
+        <span style="font-size:0.65rem;color:#8899bb;">Bubble area ∝ CO₂-equivalent (kg)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sliders -->
+  <div class="sliders-panel">
+    <h2>Objective Weights — Drag to Re-Optimize</h2>
+    <div class="sliders-grid">
+      <div class="slider-row">
+        <div class="slider-label-row">
+          <span class="slider-label">w₁ — Fuel Weight</span>
+          <span class="slider-value" id="val-w1">0.60</span>
+        </div>
+        <input type="range" id="slider-w1" min="0" max="1" step="0.01" value="0.60" />
+        <span class="slider-hint">Penalise high fuel burn per kg</span>
+      </div>
+      <div class="slider-row">
+        <div class="slider-label-row">
+          <span class="slider-label">w₂ — Time Weight</span>
+          <span class="slider-value" id="val-w2">0.20</span>
+        </div>
+        <input type="range" id="slider-w2" min="0" max="1" step="0.01" value="0.20" />
+        <span class="slider-hint">Penalise longer block times</span>
+      </div>
+      <div class="slider-row">
+        <div class="slider-label-row">
+          <span class="slider-label">w₃ — Emissions Weight</span>
+          <span class="slider-value" id="val-w3">0.15</span>
+        </div>
+        <input type="range" id="slider-w3" min="0" max="1" step="0.01" value="0.15" />
+        <span class="slider-hint">Penalise total CO₂-equivalent kg</span>
+      </div>
+      <div class="slider-row">
+        <div class="slider-label-row">
+          <span class="slider-label">w₄ — Contrail Weight</span>
+          <span class="slider-value" id="val-w4">0.05</span>
+        </div>
+        <input type="range" id="slider-w4" min="0" max="1" step="0.01" value="0.05" />
+        <span class="slider-hint">Penalise persistent contrail risk</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Details -->
+  <div class="details-panel">
+    <div class="detail-card">
+      <h3>Current Optimal Point</h3>
+      <div class="detail-row"><span class="detail-key">Flight Time</span><span class="detail-val highlight" id="det-time">—</span></div>
+      <div class="detail-row"><span class="detail-key">Fuel Burn</span><span class="detail-val highlight" id="det-fuel">—</span></div>
+      <div class="detail-row"><span class="detail-key">CO₂-Equivalent</span><span class="detail-val" id="det-co2">—</span></div>
+      <div class="detail-row"><span class="detail-key">Contrail Risk</span><span class="detail-val" id="det-contrail">—</span></div>
+      <div class="detail-row"><span class="detail-key">Weighted Score</span><span class="detail-val" id="det-score">—</span></div>
+    </div>
+    <div class="detail-card">
+      <h3>Physics Summary — Breguet Equation</h3>
+      <div class="detail-row"><span class="detail-key">Aircraft</span><span class="detail-val">B777-200ER</span></div>
+      <div class="detail-row"><span class="detail-key">TSFC</span><span class="detail-val">0.55 lb/lbf·hr</span></div>
+      <div class="detail-row"><span class="detail-key">L/D ratio</span><span class="detail-val">19.0</span></div>
+      <div class="detail-row"><span class="detail-key">TAS</span><span class="detail-val">490 kt (M0.84)</span></div>
+      <div class="detail-row"><span class="detail-key">GC Distance</span><span class="detail-val">5,540 km</span></div>
+      <div class="detail-row"><span class="detail-key">Ghost Fuel (theory)</span><span class="detail-val green">40,621 kg</span></div>
+    </div>
+  </div>
+
+</div><!-- /page-wrapper -->
+
+<!-- ══════════════════════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════════════════════ -->
+<script>
+'use strict';
+
+/* ── Aircraft specs ────────────────────────────────────────── */
+const AIRCRAFT = {
+  'B777-200ER': { MTOW: 297550, OEW: 138100, TSFC: 0.55, LD: 19,   TAS_kt: 490 },
+  'A320-200':  { MTOW:  77000, OEW:  42400, TSFC: 0.60, LD: 17,   TAS_kt: 450 },
+  'B737-800':  { MTOW:  79016, OEW:  41413, TSFC: 0.63, LD: 17.5, TAS_kt: 453 }
+};
+
+/* ── Breguet range fuel equation ───────────────────────────── */
+function breguetFuel(dist_km, W0_kg, ac) {
+  const V    = ac.TAS_kt * 0.51444;   // m/s
+  const tsfc = ac.TSFC / 3600;        // per second (weight-based)
+  const R    = dist_km * 1000;
+  const arg  = R * tsfc / (V * ac.LD);
+  return Math.max(0, W0_kg * (1 - Math.exp(-arg)));
+}
+
+/* ── Constants ─────────────────────────────────────────────── */
+const DIST_KM    = 5540;
+const W0_KG      = 250000;
+const AC         = AIRCRAFT['B777-200ER'];
+const GHOST_FUEL = breguetFuel(DIST_KM, W0_KG, AC);   // theoretical min
+const BASE_TAS   = AC.TAS_kt * 1.852;                   // km/h
+const BASE_TIME  = (DIST_KM / BASE_TAS) * 60;           // minutes ≈ 461
+
+/* ── Seeded pseudo-random (reproducible layout) ────────────── */
+function seededRng(seed) {
+  let s = seed % 2147483647;
+  if (s <= 0) s += 2147483646;
+  return function() {
+    s = (s * 16807) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+}
+
+/* ── Generate 60 route variants ────────────────────────────── */
+function generateRoutes() {
+  const rng    = seededRng(42);
+  const routes = [];
+
+  const timeOffsets = [-40, -28, -17, -7, 4, 14, 25, 38];  // 8 levels
+  const fuelOffsets = [-8000, -5500, -3500, -1500, 1500, 3500, 5500, 8000]; // 8 levels
+
+  timeOffsets.forEach(tOff => {
+    fuelOffsets.forEach(fOff => {
+      const noise_t = (rng() - 0.5) * 8;
+      const noise_f = (rng() - 0.5) * 1200;
+      const contrail_risk = rng() * 0.3;
+
+      const t   = BASE_TIME + tOff + noise_t;
+      const f   = breguetFuel(DIST_KM, W0_KG, AC) + 14000 + fOff + noise_f;
+      const co2 = f * 3.16 + contrail_risk * DIST_KM * 0.8;
+
+      routes.push({
+        x:           Math.round(t * 10) / 10,
+        y:           Math.round(f),
+        co2:         Math.round(co2),
+        contrail:    Math.round(contrail_risk * 100) / 100,
+        r_raw:       co2   // bubble size base
+      });
+    });
+  });
+
+  return routes;
+}
+
+/* ── Pareto front ──────────────────────────────────────────── */
+function computePareto(points) {
+  return points.filter(p =>
+    !points.some(q => q.x <= p.x && q.y <= p.y && (q.x < p.x || q.y < p.y))
+  );
+}
+
+/* ── Bubble radius mapping (pixels) ───────────────────────── */
+function co2ToRadius(co2, minCo2, maxCo2, minR, maxR) {
+  if (maxCo2 === minCo2) return (minR + maxR) / 2;
+  return minR + (co2 - minCo2) / (maxCo2 - minCo2) * (maxR - minR);
+}
+
+/* ── Build initial data ────────────────────────────────────── */
+const allRoutes   = generateRoutes();
+const paretoFront = computePareto(allRoutes);
+const subOptimal  = allRoutes.filter(p => !paretoFront.includes(p));
+
+const allCo2  = allRoutes.map(p => p.co2);
+const minCo2  = Math.min(...allCo2);
+const maxCo2  = Math.max(...allCo2);
+
+const maxFuel = Math.max(...allRoutes.map(p => p.y));
+const maxTime = Math.max(...allRoutes.map(p => p.x));
+const maxCo2V = maxCo2;
+
+/* ── Map to Chart.js bubble format ────────────────────────── */
+function toChartPoint(p, rMin, rMax) {
+  return { x: p.x, y: p.y, r: co2ToRadius(p.co2, minCo2, maxCo2, rMin, rMax), co2: p.co2, contrail: p.contrail };
+}
+
+const subOptData   = subOptimal.map(p => toChartPoint(p, 3, 9));
+const paretoData   = paretoFront.map(p => toChartPoint(p, 6, 16));
+
+/* ── Compute current optimal from weights ──────────────────── */
+let currentWeights = { w1: 0.60, w2: 0.20, w3: 0.15, w4: 0.05 };
+let currentOptIdx  = 0;
+
+function findOptimal(w) {
+  let best = Infinity, idx = 0;
+  allRoutes.forEach((p, i) => {
+    const score = w.w1 * (p.y / maxFuel) + w.w2 * (p.x / maxTime) +
+                  w.w3 * (p.co2 / maxCo2V) + w.w4 * p.contrail;
+    if (score < best) { best = score; idx = i; }
+  });
+  return idx;
+}
+
+function getMode(w) {
+  if (w.w1 > 0.7) return 'FUEL-FOCUSED';
+  if (w.w2 > 0.7) return 'TIME-FOCUSED';
+  if (w.w3 > 0.7) return 'ECO-MODE';
+  return 'BALANCED';
+}
+
+/* ── Chart.js setup ────────────────────────────────────────── */
+const ctx = document.getElementById('paretoChart').getContext('2d');
+
+const chartData = {
+  datasets: [
+    {
+      label: 'Sub-optimal routes',
+      data: subOptData,
+      backgroundColor: 'rgba(150,150,150,0.45)',
+      borderColor:     'rgba(120,120,120,0.6)',
+      borderWidth: 1,
+      hoverBackgroundColor: 'rgba(180,180,180,0.7)'
+    },
+    {
+      label: 'Pareto-optimal frontier',
+      data: paretoData,
+      backgroundColor: 'rgba(239,159,39,0.65)',
+      borderColor:     '#cc7a00',
+      borderWidth: 1.5,
+      hoverBackgroundColor: 'rgba(239,159,39,0.9)'
+    },
+    {
+      label: 'Current weighted optimum',
+      data: [], // filled dynamically
+      backgroundColor: 'rgba(255,215,0,0.9)',
+      borderColor:     '#cc9900',
+      borderWidth: 2,
+      hoverBackgroundColor: 'rgba(255,215,0,1)'
+    }
+  ]
+};
+
+const paretoChart = new Chart(ctx, {
+  type: 'bubble',
+  data: chartData,
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 350, easing: 'easeInOutQuart' },
+    layout: { padding: { top: 10, right: 20, bottom: 10, left: 10 } },
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: 'Block Time (minutes)',
+          color: '#4a5a7a',
+          font: { family: "'Courier New', monospace", size: 11, weight: '600' }
+        },
+        min: 420,
+        max: 545,
+        grid:  { color: 'rgba(0,0,50,0.07)' },
+        ticks: { color: '#4a5a7a', font: { family: "'Courier New', monospace", size: 10 } }
+      },
+      y: {
+        title: {
+          display: true,
+          text: 'Fuel Burn (kg)',
+          color: '#4a5a7a',
+          font: { family: "'Courier New', monospace", size: 11, weight: '600' }
+        },
+        min: 44000,
+        max: 72000,
+        grid:  { color: 'rgba(0,0,50,0.07)' },
+        ticks: {
+          color: '#4a5a7a',
+          font: { family: "'Courier New', monospace", size: 10 },
+          callback: v => (v / 1000).toFixed(0) + 'k'
+        }
+      }
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#0d1520',
+        borderColor: '#EF9F27',
+        borderWidth: 1,
+        titleColor: '#EF9F27',
+        bodyColor: '#c8d0e0',
+        titleFont: { family: "'Courier New', monospace", size: 11 },
+        bodyFont:  { family: "'Courier New', monospace", size: 10 },
+        padding: 10,
+        callbacks: {
+          title: items => `Route variant — ${items[0].datasetIndex === 2 ? 'OPTIMAL' : 'candidate'}`,
+          label: item => {
+            const d = item.raw;
+            return [
+              ` Block time : ${d.x.toFixed(1)} min`,
+              ` Fuel burn  : ${d.y.toLocaleString()} kg`,
+              ` CO₂-equiv  : ${(d.co2 || 0).toLocaleString()} kg`,
+              ` Contrail   : ${((d.contrail || 0) * 100).toFixed(1)}%`
+            ];
+          }
+        }
+      }
+    }
+  }
+});
+
+/* ── UI update ─────────────────────────────────────────────── */
+function updateUI() {
+  const w   = currentWeights;
+  const idx = findOptimal(w);
+  const opt = allRoutes[idx];
+
+  const ghostEff  = (GHOST_FUEL / opt.y * 100).toFixed(1);
+  const mode      = getMode(w);
+  const score     = (w.w1*(opt.y/maxFuel) + w.w2*(opt.x/maxTime) + w.w3*(opt.co2/maxCo2V) + w.w4*opt.contrail).toFixed(4);
+
+  // Optimal marker dataset
+  paretoChart.data.datasets[2].data = [{
+    x: opt.x, y: opt.y,
+    r: co2ToRadius(opt.co2, minCo2, maxCo2, 14, 20),
+    co2: opt.co2, contrail: opt.contrail
+  }];
+  paretoChart.update();
+
+  // Stats
+  document.getElementById('stat-pareto-count').textContent = paretoFront.length;
+  document.getElementById('stat-opt-fuel').innerHTML       = opt.y.toLocaleString() + '<span class="stat-unit">kg</span>';
+  document.getElementById('stat-ghost-eff').innerHTML      = ghostEff + '<span class="stat-unit">%</span>';
+
+  // Priority banner
+  document.getElementById('priority-mode').textContent      = mode + ' ROUTE';
+  document.getElementById('ghost-eff-display').textContent  = ghostEff + '%';
+
+  // Detail card
+  document.getElementById('det-time').textContent     = opt.x.toFixed(1) + ' min';
+  document.getElementById('det-fuel').textContent     = opt.y.toLocaleString() + ' kg';
+  document.getElementById('det-co2').textContent      = opt.co2.toLocaleString() + ' kg';
+  document.getElementById('det-contrail').textContent = (opt.contrail * 100).toFixed(1) + '%';
+  document.getElementById('det-score').textContent    = score;
+}
+
+/* ── Slider wiring ─────────────────────────────────────────── */
+['w1','w2','w3','w4'].forEach(key => {
+  const slider = document.getElementById('slider-' + key);
+  const valEl  = document.getElementById('val-' + key);
+  slider.addEventListener('input', () => {
+    const v = parseFloat(slider.value);
+    currentWeights[key] = v;
+    valEl.textContent   = v.toFixed(2);
+    updateUI();
+  });
+});
+
+/* ── Initial render ────────────────────────────────────────── */
+updateUI();
+document.getElementById('stat-pareto-count').textContent = paretoFront.length;
+</script>
+</body>
+</html>

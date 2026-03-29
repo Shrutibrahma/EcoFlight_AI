@@ -563,7 +563,6 @@
         <a href="component1_animation.html" class="nav-link" title="Path Explorer Animation">Animation</a>
         <a href="component3_pareto.html" class="nav-link" title="Pareto Frontier">Pareto</a>
         <a href="component4_theory_slide.html" class="nav-link" title="Theory Slide">Theory</a>
-        <a href="ecoflight_about.html" class="nav-link" title="About & Methodology">About</a>
         <span class="sys-label" id="clock" style="margin-left:6px;"></span>
     </div>
 </div>
@@ -1144,9 +1143,7 @@ function ariaRemoveTyping(id) {
 </style>
 
 <script>
-const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:8000'
-    : '';
+const API = 'http://localhost:8000';
 let selectedMode = 'climate';
 let activeTab = 'preset';   // 'preset' | 'custom'
 let isComputing = false;

@@ -6,7 +6,7 @@
     <title>EcoFlight AI | Flight Management System</title>
     <script src="https://cdn.jsdelivr.net/npm/globe.gl"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Share+Tech+Mono&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700&family=Instrument+Sans:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&family=Open+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         /* ═══════════════════════════════════════════════════════════════════
            EcoFlight AI — Glass Cockpit Design System
@@ -14,29 +14,35 @@
         ═══════════════════════════════════════════════════════════════════ */
 
         :root {
-            --bg:          #07101c;
-            --bg-panel:    #0b1825;
-            --bg-card:     #0e1f30;
-            --bg-input:    #0a1520;
-            --border:      #1c3248;
+            --bg:          #0c1520;
+            --bg-panel:    #101e2c;
+            --bg-card:     #0e1a27;
+            --bg-input:    #0a1420;
+            --border:      #1d3348;
             --border-hi:   #2e5070;
-            --text:        #c8d6e2;
-            --text-muted:  #4e6a7e;
-            --text-dim:    #27404e;
-            --blue:        #3aaddc;   /* EFIS blue */
-            --green:       #1db86e;   /* ECAM normal */
-            --amber:       #d49820;   /* ECAM caution */
-            --red:         #c44040;
-            --font-ui:     'DM Sans', 'Barlow', sans-serif;
-            --font-data:   'Share Tech Mono', monospace;
+            --text:        #c4d4e0;
+            --text-muted:  #5C849B;
+            --text-dim:    #2c4a5e;
+            --blue:        #5C849B;
+            --blue-mid:    #6A99B5;
+            --blue-light:  #7CB4D3;
+            --green:       #3a8c6e;
+            --amber:       #b07d3a;
+            --red:         #a84040;
+            --font-title:  'Orbitron', sans-serif;
+            --font-ui:     'Instrument Sans', 'Open Sans', sans-serif;
+            --font-body:   'DM Sans', 'Open Sans', sans-serif;
+            --font-data:   'Instrument Sans', 'Open Sans', sans-serif;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             background: var(--bg);
+            background-image: radial-gradient(circle, rgba(92,132,155,0.18) 1px, transparent 1px);
+            background-size: 22px 22px;
             color: var(--text);
-            font-family: var(--font-ui);
+            font-family: var(--font-body);
             overflow-x: hidden;
             font-size: 14px;
             -webkit-font-smoothing: antialiased;
@@ -54,16 +60,17 @@
             position: fixed;
             top: 0; width: 100%;
             z-index: 1000;
+            box-shadow: 0 1px 8px rgba(0,0,0,0.35);
         }
         .topbar-left { display: flex; align-items: center; gap: 14px; }
 
         .logo {
-            font-family: var(--font-data);
-            font-size: 1.05rem;
+            font-family: var(--font-title);
+            font-size: 1.0rem;
             color: var(--blue);
             letter-spacing: 1px;
         }
-        .logo span { color: var(--text-muted); font-size: 0.75rem; margin-left: 4px; }
+        .logo span { color: var(--text-dim); font-size: 0.75rem; margin-left: 4px; font-family: var(--font-body); }
 
         .status-dot {
             width: 7px; height: 7px;
@@ -74,20 +81,20 @@
         .sys-label {
             font-size: 0.65rem;
             color: var(--text-dim);
-            letter-spacing: 0.5px;
-            font-family: var(--font-data);
+            letter-spacing: 0.3px;
+            font-family: var(--font-ui);
         }
 
         .contrail-badge {
-            background: rgba(212,152,32,0.15);
+            background: rgba(176,125,58,0.1);
             color: var(--amber);
-            border: 1px solid rgba(212,152,32,0.3);
+            border: 1px solid rgba(176,125,58,0.25);
             padding: 2px 8px;
             border-radius: 2px;
             font-size: 0.6rem;
             font-weight: 600;
             letter-spacing: 0.5px;
-            font-family: var(--font-data);
+            font-family: var(--font-ui);
         }
 
         .nav-link {
@@ -97,26 +104,29 @@
             padding: 3px 8px;
             border: 1px solid var(--border);
             border-radius: 2px;
-            font-family: var(--font-data);
+            font-family: var(--font-ui);
             letter-spacing: 0.3px;
             transition: all 0.15s;
         }
         .nav-link:hover { color: var(--blue); border-color: var(--border-hi); }
         .nav-link.amber-link {
             color: var(--amber);
-            border-color: rgba(212,152,32,0.35);
+            border-color: rgba(176,125,58,0.3);
         }
-        .nav-link.amber-link:hover { background: rgba(212,152,32,0.08); }
+        .nav-link.amber-link:hover { background: rgba(176,125,58,0.06); }
 
         /* ── MAIN LAYOUT ──────────────────────────────────────────────────── */
         .main {
             display: grid;
-            grid-template-columns: 284px 1fr 344px;
+            grid-template-columns: var(--left-w, 284px) 1fr var(--right-w, 344px);
             grid-template-rows: 1fr;
             min-height: 0;
             height: calc(100vh - 50px);
             margin-top: 50px;
+            transition: grid-template-columns 0.3s ease;
         }
+        .main.left-collapsed  { --left-w: 36px; }
+        .main.right-collapsed { --right-w: 36px; }
 
         /* ── LEFT PANEL ───────────────────────────────────────────────────── */
         .panel-left {
@@ -124,14 +134,52 @@
             border-right: 1px solid var(--border);
             padding: 18px 16px;
             overflow-y: auto;
+            overflow-x: hidden;
             min-height: 0;
+            position: relative;
+            transition: padding 0.3s;
         }
+        .panel-left.collapsed { padding: 14px 6px; overflow: hidden; }
+        .panel-left.collapsed .panel-body { display: none; }
+
+        .panel-collapse-btn {
+            position: absolute;
+            top: 10px; right: 10px;
+            width: 22px; height: 22px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            transition: all 0.15s;
+            z-index: 5;
+            flex-shrink: 0;
+        }
+        .panel-collapse-btn:hover { color: var(--blue); border-color: var(--border-hi); }
+
+        .panel-collapsed-label {
+            display: none;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transform: rotate(180deg);
+            font-family: var(--font-ui);
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            margin-top: 32px;
+            white-space: nowrap;
+        }
+        .panel-left.collapsed .panel-collapsed-label { display: block; }
 
         .panel-title {
-            font-family: var(--font-data);
-            font-size: 0.68rem;
+            font-family: var(--font-ui);
+            font-size: 0.62rem;
+            font-weight: 600;
             color: var(--blue);
             letter-spacing: 1px;
+            text-transform: uppercase;
             margin-bottom: 14px;
             padding-bottom: 7px;
             border-bottom: 1px solid var(--border);
@@ -142,7 +190,9 @@
             color: var(--text-muted);
             letter-spacing: 0.4px;
             margin: 12px 0 5px;
-            font-weight: 500;
+            font-weight: 600;
+            font-family: var(--font-ui);
+            text-transform: uppercase;
         }
 
         select, input[type="text"] {
@@ -150,18 +200,19 @@
             background: var(--bg-input);
             border: 1px solid var(--border);
             color: var(--text);
-            font-family: var(--font-data);
-            font-size: 0.78rem;
+            font-family: var(--font-body);
+            font-size: 0.8rem;
             padding: 8px 10px;
-            border-radius: 3px;
+            border-radius: 4px;
             outline: none;
             transition: border-color 0.2s;
         }
         select:focus, input[type="text"]:focus {
-            border-color: var(--blue);
+            border-color: var(--blue-mid);
+            box-shadow: 0 0 0 3px rgba(92,132,155,0.15);
         }
         select option { background: var(--bg-input); color: var(--text); }
-        optgroup { color: var(--text-muted); font-size: 0.68rem; }
+        optgroup { color: var(--text-muted); font-size: 0.68rem; font-family: var(--font-ui); }
 
         /* ── OPT MODE BUTTONS ─────────────────────────────────────────────── */
         .opt-mode { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; }
@@ -170,20 +221,20 @@
             background: var(--bg-input);
             border: 1px solid var(--border);
             color: var(--text-muted);
-            font-family: var(--font-ui);
+            font-family: var(--font-body);
             font-size: 0.78rem;
             font-weight: 400;
             padding: 9px 11px;
-            border-radius: 3px;
+            border-radius: 4px;
             cursor: pointer;
             text-align: left;
             transition: all 0.15s;
         }
-        .opt-btn:hover { border-color: var(--border-hi); color: var(--text); }
+        .opt-btn:hover { border-color: var(--border-hi); color: var(--text); background: var(--bg-card); }
         .opt-btn.active {
             border-color: var(--blue);
             color: var(--blue);
-            background: rgba(58,173,220,0.06);
+            background: rgba(92,132,155,0.07);
         }
 
         /* ── COMPUTE BUTTON ───────────────────────────────────────────────── */
@@ -191,20 +242,22 @@
             width: 100%;
             margin-top: 16px;
             padding: 11px 14px;
-            background: rgba(58,173,220,0.1);
-            border: 1px solid var(--blue);
-            color: var(--blue);
-            font-family: var(--font-data);
+            background: var(--blue);
+            border: none;
+            color: #ffffff;
+            font-family: var(--font-ui);
             font-size: 0.78rem;
-            letter-spacing: 1px;
-            border-radius: 3px;
+            font-weight: 600;
+            letter-spacing: 0.8px;
+            border-radius: 4px;
             cursor: pointer;
             transition: all 0.2s;
         }
         .compute-btn:hover {
-            background: rgba(58,173,220,0.18);
+            background: var(--blue-mid);
+            box-shadow: 0 2px 10px rgba(92,132,155,0.3);
         }
-        .compute-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+        .compute-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
         /* ── COMPUTE TABS ─────────────────────────────────────────────────── */
         .compute-tabs {
@@ -233,20 +286,22 @@
 
         /* ── CUSTOM WEIGHTS ───────────────────────────────────────────────── */
         .formula-box {
-            background: rgba(58,173,220,0.04);
+            background: rgba(92,132,155,0.05);
             border: 1px solid var(--border);
-            border-left: 2px solid var(--blue);
-            border-radius: 3px;
+            border-left: 3px solid var(--blue);
+            border-radius: 4px;
             padding: 10px 12px;
             margin: 10px 0;
-            font-family: var(--font-data);
-            font-size: 0.62rem;
+            font-family: var(--font-body);
+            font-size: 0.7rem;
             color: var(--text-muted);
             line-height: 1.8;
         }
         .formula-eq {
             color: var(--blue);
-            font-size: 0.67rem;
+            font-size: 0.72rem;
+            font-family: var(--font-ui);
+            font-weight: 600;
             display: block;
             margin-bottom: 5px;
         }
@@ -257,15 +312,19 @@
             font-size: 0.7rem;
             color: var(--text-muted);
             margin-bottom: 3px;
+            font-family: var(--font-ui);
+            font-weight: 500;
         }
         .weight-label .w-val {
-            font-family: var(--font-data);
+            font-family: var(--font-ui);
+            font-weight: 700;
             color: var(--blue);
         }
         .weight-desc {
-            font-size: 0.6rem;
+            font-size: 0.62rem;
             color: var(--text-dim);
             margin-bottom: 4px;
+            font-family: var(--font-body);
         }
         input[type="range"] {
             width: 100%;
@@ -278,42 +337,65 @@
 
         /* ── JUDGE TIP ────────────────────────────────────────────────────── */
         .judge-tip {
-            background: rgba(212,152,32,0.04);
-            border: 1px solid rgba(212,152,32,0.18);
-            border-left: 2px solid var(--amber);
-            border-radius: 3px;
+            background: rgba(176,125,58,0.05);
+            border: 1px solid rgba(176,125,58,0.15);
+            border-left: 3px solid var(--amber);
+            border-radius: 4px;
             padding: 10px 12px;
             margin: 10px 0 14px;
             font-size: 0.7rem;
-            color: #8a7040;
+            color: var(--text-muted);
             line-height: 1.7;
+            font-family: var(--font-body);
         }
         .judge-tip .jt-title {
             color: var(--amber);
             font-weight: 600;
-            font-size: 0.62rem;
+            font-size: 0.63rem;
             letter-spacing: 0.3px;
             margin-bottom: 5px;
             display: block;
-            font-family: var(--font-data);
+            font-family: var(--font-ui);
         }
 
         /* ── GLOBE CONTAINER ──────────────────────────────────────────────── */
         .globe-container {
             position: relative;
-            background: var(--bg);
+            background: #07101c;
             overflow: hidden;
             min-height: 0;
             min-width: 0;
         }
         #globeViz { width: 100%; height: 100%; min-height: 280px; }
 
+        /* 4D profile chart */
+        .profile-4d-wrap {
+            position: absolute;
+            top: 10px; right: 10px;
+            width: 300px; height: 150px;
+            background: rgba(7,16,28,0.94);
+            border: 1px solid rgba(92,132,155,0.3);
+            border-radius: 5px;
+            padding: 8px;
+            z-index: 12;
+            display: none;
+        }
+        .profile-4d-wrap.visible { display: block; }
+        .profile-4d-wrap .ph {
+            font-size: 0.56rem;
+            color: rgba(92,132,155,0.7);
+            margin-bottom: 4px;
+            font-family: var(--font-ui);
+            letter-spacing: 0.3px;
+        }
+        #profile4dCanvas { width: 100% !important; height: 112px !important; }
+
         /* Animated aircraft */
         .ecoflight-plane {
             width: 44px; height: 44px;
             display: flex; align-items: center; justify-content: center;
             pointer-events: none;
-            filter: drop-shadow(0 0 6px rgba(58,173,220,0.8));
+            filter: drop-shadow(0 0 6px rgba(92,132,155,0.9));
         }
         .ecoflight-plane svg { display: block; }
 
@@ -322,9 +404,9 @@
             position: absolute;
             bottom: 18px; left: 50%;
             transform: translateX(-50%);
-            background: rgba(11,24,37,0.93);
-            border: 1px solid var(--border);
-            border-radius: 4px;
+            background: rgba(7,16,28,0.93);
+            border: 1px solid rgba(92,132,155,0.25);
+            border-radius: 5px;
             padding: 10px 24px;
             display: flex; align-items: center; gap: 18px;
             z-index: 10;
@@ -333,22 +415,22 @@
         }
         .route-overlay.visible { display: flex; }
         .ro-airport {
-            font-family: var(--font-data);
-            font-size: 1.4rem;
-            color: var(--blue);
+            font-family: var(--font-title);
+            font-size: 1.2rem;
+            color: #7CB4D3;
             letter-spacing: 1px;
         }
-        .ro-arrow { color: var(--text-dim); font-size: 1rem; }
-        .ro-info { font-size: 0.6rem; color: var(--text-muted); text-align: center; }
-        .ro-value { font-family: var(--font-data); color: var(--text); font-size: 0.85rem; }
+        .ro-arrow { color: rgba(92,132,155,0.5); font-size: 1rem; }
+        .ro-info { font-size: 0.6rem; color: rgba(92,132,155,0.6); text-align: center; font-family: var(--font-ui); }
+        .ro-value { font-family: var(--font-ui); font-weight: 600; color: #c8d6e2; font-size: 0.85rem; }
 
         /* Globe legend */
         .globe-legend {
             position: absolute;
             top: 12px; left: 12px;
-            background: rgba(11,24,37,0.88);
-            border: 1px solid var(--border);
-            border-radius: 4px;
+            background: rgba(7,16,28,0.9);
+            border: 1px solid rgba(92,132,155,0.2);
+            border-radius: 5px;
             padding: 9px 12px;
             font-size: 0.62rem;
             z-index: 10;
@@ -356,7 +438,7 @@
             backdrop-filter: blur(4px);
         }
         .globe-legend.visible { display: block; }
-        .legend-item { display: flex; align-items: center; gap: 7px; margin: 3px 0; color: var(--text-muted); }
+        .legend-item { display: flex; align-items: center; gap: 7px; margin: 3px 0; color: rgba(92,132,155,0.8); font-family: var(--font-body); }
         .legend-line { width: 18px; height: 2px; border-radius: 1px; }
         .legend-dot { width: 7px; height: 7px; border-radius: 50%; }
 
@@ -369,9 +451,9 @@
         }
         .zoom-btn {
             width: 26px; height: 26px;
-            background: rgba(11,24,37,0.9);
-            border: 1px solid var(--border);
-            color: var(--text-muted);
+            background: rgba(7,16,28,0.9);
+            border: 1px solid rgba(92,132,155,0.25);
+            color: rgba(92,132,155,0.7);
             font-size: 0.9rem;
             font-weight: 600;
             border-radius: 3px;
@@ -381,7 +463,7 @@
             padding: 0; line-height: 1;
             font-family: var(--font-ui);
         }
-        .zoom-btn:hover { border-color: var(--blue); color: var(--blue); }
+        .zoom-btn:hover { border-color: #7CB4D3; color: #7CB4D3; }
 
         /* ── RIGHT PANEL ──────────────────────────────────────────────────── */
         .panel-right {
@@ -389,41 +471,77 @@
             border-left: 1px solid var(--border);
             padding: 18px 16px;
             overflow-y: auto;
+            overflow-x: hidden;
             min-height: 0;
+            position: relative;
+            transition: padding 0.3s;
         }
+        .panel-right.collapsed { padding: 14px 6px; overflow: hidden; }
+        .panel-right.collapsed .panel-body-right { display: none; }
+
+        .panel-right-collapse-btn {
+            position: absolute;
+            top: 10px; left: 10px;
+            width: 22px; height: 22px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            transition: all 0.15s;
+            z-index: 5;
+        }
+        .panel-right-collapse-btn:hover { color: var(--blue); border-color: var(--border-hi); }
+
+        .panel-right-collapsed-label {
+            display: none;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            font-family: var(--font-ui);
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            margin-top: 40px;
+            white-space: nowrap;
+        }
+        .panel-right.collapsed .panel-right-collapsed-label { display: block; }
 
         /* ── INSTRUMENT CARDS ─────────────────────────────────────────────── */
         .instrument {
             background: var(--bg-card);
             border: 1px solid var(--border);
-            border-left: 2px solid var(--border-hi);
-            border-radius: 3px;
+            border-left: 3px solid var(--border-hi);
+            border-radius: 5px;
             padding: 12px 14px;
             margin: 6px 0;
         }
         .instrument.green  { border-left-color: var(--green); }
-        .instrument.blue   { border-left-color: var(--blue); }
+        .instrument.blue   { border-left-color: var(--blue-mid); }
         .instrument.amber  { border-left-color: var(--amber); }
 
         .inst-label {
             font-family: var(--font-ui);
-            font-size: 0.65rem;
-            font-weight: 500;
+            font-size: 0.63rem;
+            font-weight: 600;
             color: var(--text-muted);
-            letter-spacing: 0.2px;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
         }
         .inst-value {
-            font-family: var(--font-data);
-            font-size: 1.45rem;
+            font-family: var(--font-ui);
+            font-size: 1.4rem;
+            font-weight: 700;
             color: var(--green);
             margin: 4px 0 2px;
         }
-        .inst-value.cyan  { color: var(--blue); }
+        .inst-value.cyan  { color: var(--blue-mid); }
         .inst-value.amber { color: var(--amber); }
         .inst-value.red   { color: var(--red); }
 
         .inst-delta {
-            font-family: var(--font-ui);
+            font-family: var(--font-body);
             font-size: 0.63rem;
             color: var(--green);
         }
@@ -432,14 +550,14 @@
 
         /* Advisory box */
         .advisory {
-            background: rgba(212,152,32,0.05);
-            border: 1px solid rgba(212,152,32,0.18);
-            border-left: 2px solid var(--amber);
-            border-radius: 3px;
+            background: rgba(176,125,58,0.04);
+            border: 1px solid rgba(176,125,58,0.15);
+            border-left: 3px solid var(--amber);
+            border-radius: 4px;
             padding: 10px 13px;
-            font-family: var(--font-ui);
+            font-family: var(--font-body);
             font-size: 0.75rem;
-            color: #a08030;
+            color: var(--text-muted);
             line-height: 1.65;
             margin: 10px 0;
         }
@@ -448,7 +566,7 @@
         .chart-box {
             background: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: 3px;
+            border-radius: 4px;
             padding: 10px;
             margin: 8px 0;
         }
@@ -457,7 +575,7 @@
         /* Comparison table */
         .comp-table {
             width: 100%; border-collapse: collapse;
-            font-family: var(--font-ui);
+            font-family: var(--font-body);
             font-size: 0.72rem;
             margin: 8px 0;
         }
@@ -467,19 +585,21 @@
             padding: 7px 6px;
             text-align: left;
             font-size: 0.63rem;
-            font-weight: 600;
+            font-weight: 700;
             border-bottom: 1px solid var(--border);
-            font-family: var(--font-data);
+            font-family: var(--font-ui);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
         }
         .comp-table td {
             padding: 6px;
-            border-bottom: 1px solid rgba(28,50,72,0.6);
+            border-bottom: 1px solid rgba(29,51,72,0.9);
             color: var(--text-muted);
-            font-family: var(--font-data);
+            font-family: var(--font-body);
             font-size: 0.7rem;
         }
         .comp-table tr:last-child td { border: none; }
-        .comp-table .highlight { color: var(--green); }
+        .comp-table .highlight { color: var(--green); font-weight: 600; }
 
         /* Welcome state */
         .welcome {
@@ -488,13 +608,13 @@
             height: 100%; text-align: center; padding: 40px;
         }
         .welcome h2 {
-            font-family: var(--font-data);
-            color: var(--border-hi);
-            font-size: 0.9rem;
-            letter-spacing: 1px;
+            font-family: var(--font-title);
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            letter-spacing: 1.5px;
             margin-bottom: 14px;
         }
-        .welcome p { color: var(--text-dim); font-size: 0.78rem; line-height: 1.8; max-width: 280px; }
+        .welcome p { color: var(--text-muted); font-size: 0.8rem; line-height: 1.8; max-width: 280px; font-family: var(--font-body); }
 
         /* Loading */
         .loading { display: none; text-align: center; padding: 30px; }
@@ -522,24 +642,26 @@
             margin-top: 6px;
             border-top: 1px solid var(--border);
             padding-top: 6px;
+            font-family: var(--font-body);
         }
         .inst-explain .formula {
-            color: #2a5e74;
-            font-family: var(--font-data);
-            font-size: 0.6rem;
+            color: var(--blue);
+            font-family: var(--font-ui);
+            font-weight: 600;
+            font-size: 0.62rem;
         }
         .data-badge {
             display: inline-block;
             font-size: 0.54rem;
             padding: 1px 5px;
             border-radius: 2px;
-            font-weight: 600;
+            font-weight: 700;
             letter-spacing: 0.3px;
             margin-top: 3px;
-            font-family: var(--font-data);
+            font-family: var(--font-ui);
         }
-        .data-badge.real    { background: rgba(29,184,110,0.1); color: var(--green); border: 1px solid rgba(29,184,110,0.2); }
-        .data-badge.modeled { background: rgba(212,152,32,0.08); color: var(--amber); border: 1px solid rgba(212,152,32,0.2); }
+        .data-badge.real    { background: rgba(58,140,110,0.1); color: var(--green); border: 1px solid rgba(58,140,110,0.2); }
+        .data-badge.modeled { background: rgba(176,125,58,0.08); color: var(--amber); border: 1px solid rgba(176,125,58,0.2); }
 
         /* ── SCALE ROW ────────────────────────────────────────────────────── */
         .scale-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
@@ -563,7 +685,20 @@
         <a href="component1_animation.html" class="nav-link" title="Path Explorer Animation">Animation</a>
         <a href="component3_pareto.html" class="nav-link" title="Pareto Frontier">Pareto</a>
         <a href="component4_theory_slide.html" class="nav-link" title="Theory Slide">Theory</a>
-        <a href="ecoflight_about.html" class="nav-link" title="About & Methodology">About</a>
+        <button onclick="ARIA.open()" style="
+            background: rgba(92,132,155,0.12);
+            border: 1px solid var(--border-hi);
+            color: var(--blue-light);
+            font-family: var(--font-ui);
+            font-size: 0.62rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            padding: 3px 10px;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.15s;
+            margin-left: 4px;
+        " onmouseover="this.style.background='rgba(106,153,181,0.2)'" onmouseout="this.style.background='rgba(92,132,155,0.12)'">🎙 ARIA — 121.500</button>
         <span class="sys-label" id="clock" style="margin-left:6px;"></span>
     </div>
 </div>
@@ -572,14 +707,17 @@
 <div class="main">
 
     <!-- LEFT PANEL -->
-    <div class="panel-left">
-        <div class="panel-title">Flight Plan</div>
+    <div class="panel-left" id="leftPanel">
+        <button class="panel-collapse-btn" onclick="togglePanel('left')" title="Collapse panel" id="leftCollapseBtn">‹</button>
+        <span class="panel-collapsed-label">Flight Plan</span>
+        <div class="panel-body">
+        <div class="panel-title" style="padding-right:28px;">Flight Plan</div>
 
         <!-- Judge tip: best routes to demo -->
         <div class="judge-tip">
             <div class="jt-title">✈ Best Routes for Demo</div>
-            <strong style="color:#c9a227;">① JFK → LHR</strong> — North Atlantic jet stream + contrail avoidance. Path curves north for 90 kt tailwind.<br>
-            <strong style="color:#c9a227;">② ORD → FRA</strong> — Polar arc showing why optimal ≠ shortest distance.
+            <strong style="color:var(--amber);">① JFK → LHR</strong> — North Atlantic jet stream + contrail avoidance. Path curves north for 90 kt tailwind.<br>
+            <strong style="color:var(--amber);">② ORD → FRA</strong> — Polar arc showing why optimal ≠ shortest distance.
         </div>
 
         <div class="field-label">Departure</div>
@@ -672,11 +810,12 @@
                 <div class="weight-desc">"Avoid ice-supersaturated air that forms persistent contrails (= 35% of aviation warming)."</div>
                 <input type="range" id="w4" min="0" max="10" value="2" oninput="updateWeightDisplay()">
             </div>
-            <div id="weightNormDisplay" style="font-size:0.62rem;color:var(--text-dim);margin:6px 0;font-family:var(--font-data);"></div>
+            <div id="weightNormDisplay" style="font-size:0.62rem;color:var(--text-dim);margin:6px 0;font-family:var(--font-ui);"></div>
             <button class="compute-btn" id="computeBtnCustom" onclick="computeRoute('custom')">
                 Run Optimization →
             </button>
         </div>
+        </div><!-- end panel-body -->
     </div>
 
     <!-- CENTER: Globe -->
@@ -692,14 +831,16 @@
             <button class="zoom-btn" onclick="globeReset()" title="Reset view" style="font-size:0.65rem;">⌂</button>
         </div>
 
+        <!-- Always works: 4D altitude vs distance (even if WebGL globe fails) -->
+        <div class="profile-4d-wrap" id="profile4dWrap">
+            <div class="ph">Altitude Profile — hover waypoints for T+ETA</div>
+            <canvas id="profile4dCanvas"></canvas>
+        </div>
+
         <div class="globe-legend" id="globeLegend">
             <div class="legend-item">
                 <div class="legend-line" style="background:#3aaddc;"></div>
-                <span>CO₂-optimal path</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-line" style="background:#1db86e;"></div>
-                <span>Fuel-efficient path</span>
+                <span>EcoFlight climate-optimal</span>
             </div>
             <div class="legend-item">
                 <div class="legend-line" style="background:rgba(90,110,130,0.65);border:1px dashed rgba(90,110,130,0.5);"></div>
@@ -720,15 +861,6 @@
             <div class="legend-item">
                 <div class="legend-dot" style="background:#c44040;opacity:0.5;"></div>
                 <span>Contrail risk zone</span>
-            </div>
-            <div style="margin-top:8px; display:flex; gap:5px;">
-                <button id="viewToggleBtn" onclick="toggleViewMode()" style="flex:1;background:#0a1520;border:1px solid #3aaddc;color:#3aaddc;padding:4px 6px;font-size:0.5rem;font-family:'Share Tech Mono',monospace;cursor:pointer;border-radius:3px;">SATELLITE</button>
-                <button id="liveFlightsBtn" onclick="toggleLiveFlights()" style="flex:1;background:#0a1a0a;border:1px solid #00ff88;color:#00ff88;padding:4px 6px;font-size:0.5rem;font-family:'Share Tech Mono',monospace;cursor:pointer;border-radius:3px;">LIVE</button>
-            </div>
-            <div style="margin-top:5px;">
-                <button onclick="openARIARadio()" style="width:100%;background:linear-gradient(135deg,#0a1a0a,#001a10);border:1px solid #00ff9d;color:#00ff9d;padding:7px 6px;font-size:0.55rem;font-family:'Share Tech Mono',monospace;cursor:pointer;border-radius:4px;letter-spacing:1px;font-weight:bold;box-shadow:0 0 10px rgba(0,255,157,0.3);transition:all 0.2s;" onmouseover="this.style.boxShadow='0 0 20px rgba(0,255,157,0.6)'" onmouseout="this.style.boxShadow='0 0 10px rgba(0,255,157,0.3)'">
-                    ARIA — 121.500 AI RADIO
-                </button>
             </div>
         </div>
 
@@ -755,6 +887,9 @@
 
     <!-- RIGHT PANEL -->
     <div class="panel-right" id="rightPanel">
+        <button class="panel-right-collapse-btn" onclick="togglePanel('right')" title="Collapse panel" id="rightCollapseBtn">›</button>
+        <span class="panel-right-collapsed-label">Results</span>
+        <div class="panel-body-right" style="padding-top:4px;">
         <div class="welcome" id="welcomeState">
             <h2>Awaiting Flight Plan</h2>
             <p>Select departure, arrival, and aircraft type. Choose an optimization mode and click Run Optimization to compute your route.</p>
@@ -770,33 +905,82 @@
                 <div class="inst-label">Fuel Saved vs Standard Route</div>
                 <div class="inst-value" id="fuelSaved">--</div>
                 <div class="inst-delta" id="fuelPct">--</div>
+                <div class="inst-explain">
+                    Calculated using the <strong>Breguet Range Equation</strong>: <span class="formula">fuel = W₀ × (1 − e^(−R·TSFC/V·L/D))</span>. Aircraft weight (W₀), engine efficiency (TSFC), aerodynamic lift-to-drag (L/D), and true airspeed (V) are real manufacturer specs. Wind-adjusted via jet-stream heading data.
+                    <span class="data-badge real">REAL PHYSICS</span>
+                </div>
             </div>
 
             <div class="instrument blue">
                 <div class="inst-label">CO₂ Avoided (from Fuel Reduction)</div>
                 <div class="inst-value cyan" id="co2Saved">--</div>
+                <div class="inst-delta muted">kg CO₂ from burning less Jet-A</div>
+                <div class="inst-explain">
+                    <span class="formula">CO₂ = Fuel saved (kg) × 3.16</span> — the ICAO/IPCC standard factor: burning 1 kg of Jet-A fuel produces 3.16 kg of CO₂ (carbon + oxygen mass). This is a well-established, real-world constant.
+                    <span class="data-badge real">ICAO STANDARD</span>
+                </div>
             </div>
 
             <div class="instrument amber">
                 <div class="inst-label">Contrail Warming Avoided</div>
                 <div class="inst-value amber" id="contrailSaved">--</div>
                 <div class="inst-delta amber">kg CO₂-equivalent warming</div>
+                <div class="inst-explain">
+                    Contrails form in <strong>ice-supersaturated air</strong> (temp &lt; −40°C, RH &gt; 95%) — the Schmidt-Appleman criterion. Each km of <em>persistent</em> contrail traps heat equivalent to <span class="formula">0.54 kg CO₂</span> (Lee et al., Nature 2021). EcoFlight adjusts altitude ±2,000 ft to sidestep these layers. Regional humidity from ERA5-calibrated model.
+                    <span class="data-badge real">LEE ET AL. 2021</span>
+                    <span class="data-badge modeled">ATMO: MODELED</span>
+                </div>
             </div>
 
             <div class="instrument green">
                 <div class="inst-label">Total Climate Impact Saved</div>
                 <div class="inst-value" id="totalSaved">--</div>
                 <div class="inst-delta" id="totalPct">--</div>
+                <div class="inst-explain">
+                    <span class="formula">Total = CO₂ saved + Contrail warming avoided</span>. This is the <em>full picture</em> — contrails alone account for ~35% of aviation's warming. Optimising fuel only misses this entirely.
+                    <span class="data-badge real">DUAL OBJECTIVE</span>
+                </div>
             </div>
 
             <div class="instrument blue">
                 <div class="inst-label">Cost Saved Per Flight</div>
                 <div class="inst-value cyan" id="costSaved">--</div>
                 <div class="inst-delta muted">USD at $0.85 / kg Jet-A</div>
+                <div class="inst-explain">
+                    <span class="formula">Cost saved = Fuel saved (kg) × $0.85/kg</span>. Global average Jet-A price (IATA Fuel Monitor 2024). Actual airline savings vary by contract.
+                    <span class="data-badge real">IATA PRICING</span>
+                </div>
             </div>
 
             <div id="insightBox" class="advisory" style="display:none;"></div>
 
+            <div class="panel-title" style="margin-top:14px;">Block Time Comparison</div>
+            <div class="instrument">
+                <div class="inst-label">Standard — great-circle baseline</div>
+                <div class="inst-value cyan" id="blockStd">--</div>
+                <div class="inst-delta muted">min · direct routing, no optimisation</div>
+            </div>
+            <div class="instrument">
+                <div class="inst-label">Fuel-optimised — A* wind-aware</div>
+                <div class="inst-value cyan" id="blockFuel">--</div>
+                <div class="inst-delta muted">min · may be shorter via jet stream</div>
+            </div>
+            <div class="instrument green">
+                <div class="inst-label">EcoFlight 4D — climate optimised</div>
+                <div class="inst-value" id="blockClimate">--</div>
+                <div class="inst-delta muted">min · hover waypoints on globe for T+ETA</div>
+                <div class="inst-explain">A small time penalty is sometimes accepted to route around contrail-forming air layers — the climate trade-off is strongly positive.</div>
+            </div>
+            <div id="t4MethodNote" class="advisory" style="display:none;font-size:0.65rem;"></div>
+
+            <!-- Warming chart -->
+            <div class="panel-title" style="margin-top:14px;">Climate Impact Breakdown</div>
+            <div style="font-size:0.67rem;color:var(--text-muted);padding:5px 2px 2px;line-height:1.65;">
+                Stacked bars show CO₂ from fuel burn (blue) plus contrail warming CO₂-equivalent (orange) per routing strategy. EcoFlight cuts both simultaneously.
+            </div>
+            <div class="chart-box">
+                <canvas id="warmingChart"></canvas>
+            </div>
 
             <!-- Comparison table -->
             <div class="panel-title">Route Comparison</div>
@@ -807,346 +991,21 @@
                 <tbody id="compBody"></tbody>
             </table>
 
+            <!-- Why optimal box -->
+            <div class="panel-title" style="margin-top:14px;">Why this path isn't the shortest</div>
+            <div id="whyOptimalBox" class="advisory" style="font-size:0.7rem;color:var(--text-muted);line-height:1.7;display:none;"></div>
         </div>
 
         <div class="loading" id="loadingState">
             <div class="spinner"></div>
-            <div class="sys-label">Computing 4D trajectory...</div>
+            <div class="sys-label" style="font-family:var(--font-ui);">Computing 4D trajectory...</div>
         </div>
+        </div><!-- end panel-body-right -->
     </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════════
-     ARIA — 121.500 AI Radio Panel (floating overlay)
-═══════════════════════════════════════════════════════════════════ -->
-<div id="ariaPanel" style="
-    position:fixed; bottom:20px; right:20px;
-    width:380px; max-height:560px;
-    background:linear-gradient(160deg,#070f1c,#0b1825);
-    border:1px solid #00ff9d44;
-    border-radius:12px;
-    box-shadow:0 0 40px rgba(0,255,157,0.12), 0 8px 32px rgba(0,0,0,0.6);
-    display:none; flex-direction:column;
-    font-family:'Share Tech Mono',monospace;
-    z-index:2000; overflow:hidden;
-">
-    <!-- Header -->
-    <div style="
-        background:linear-gradient(90deg,#001a10,#050f1a);
-        border-bottom:1px solid #00ff9d33;
-        padding:10px 14px; display:flex; align-items:center; justify-content:space-between;
-    ">
-        <div style="display:flex;align-items:center;gap:8px;">
-            <div id="ariaStatusDot" style="width:8px;height:8px;border-radius:50%;background:#555;box-shadow:0 0 6px #555;transition:all 0.3s;"></div>
-            <span style="color:#00ff9d;font-size:0.7rem;letter-spacing:2px;font-weight:bold;">ARIA — 121.500 AI</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-            <span style="color:#00ff9d;font-size:1rem;letter-spacing:1px;font-family:'Share Tech Mono'">121.500</span>
-            <button onclick="closeARIA()" style="background:none;border:none;color:#4a6070;font-size:1rem;cursor:pointer;padding:2px 6px;" title="Close">✕</button>
-        </div>
-    </div>
-
-    <!-- Status bar -->
-    <div id="ariaStatusBar" style="padding:5px 14px;font-size:0.6rem;color:#4a6070;border-bottom:1px solid #0e2030;letter-spacing:1px;">
-        Connecting to ARIA...
-    </div>
-
-    <!-- Transcript -->
-    <div id="ariaTranscript" style="
-        flex:1; overflow-y:auto; padding:12px 14px;
-        min-height:200px; max-height:300px;
-        display:flex; flex-direction:column; gap:10px;
-        scrollbar-width:thin; scrollbar-color:#1c3248 transparent;
-    "></div>
-
-    <!-- PTT Section -->
-    <div style="padding:12px 14px;border-top:1px solid #0e2030;">
-        <!-- PTT Button -->
-        <div style="text-align:center;margin-bottom:10px;">
-            <button id="ariaPTTBtn"
-                onmousedown="ariaStartRecording()" onmouseup="ariaStopRecording()"
-                ontouchstart="ariaStartRecording()" ontouchend="ariaStopRecording()"
-                style="
-                    width:72px;height:72px;border-radius:50%;
-                    background:radial-gradient(circle,#002a15,#001a0a);
-                    border:2px solid #00ff9d;
-                    color:#00ff9d;font-size:1.6rem;cursor:pointer;
-                    box-shadow:0 0 16px rgba(0,255,157,0.3);
-                    transition:all 0.15s; outline:none;
-                " title="Hold to Talk">🎙</button>
-            <div id="ariaPTTLabel" style="margin-top:6px;font-size:0.55rem;color:#4a6070;letter-spacing:2px;">HOLD TO TALK</div>
-        </div>
-        <!-- Text input fallback -->
-        <div style="display:flex;gap:6px;">
-            <input id="ariaTextInput" type="text" placeholder="Or type your question..."
-                onkeydown="if(event.key==='Enter')ariaSendText()"
-                style="
-                    flex:1;background:#0a1520;border:1px solid #1c3248;
-                    color:#c8d6e2;font-family:'Share Tech Mono';font-size:0.65rem;
-                    padding:7px 10px;border-radius:5px;outline:none;
-                " />
-            <button onclick="ariaSendText()" style="
-                background:#001a0a;border:1px solid #00ff9d;color:#00ff9d;
-                font-family:'Share Tech Mono';font-size:0.6rem;padding:7px 10px;
-                border-radius:5px;cursor:pointer;letter-spacing:1px;
-            ">SEND</button>
-        </div>
-    </div>
-</div>
-
-<style>
-#ariaPTTBtn.recording {
-    background: radial-gradient(circle, #1a0000, #0a0000) !important;
-    border-color: #ff4444 !important;
-    color: #ff4444 !important;
-    box-shadow: 0 0 30px rgba(255,68,68,0.5) !important;
-    transform: scale(1.08);
-}
-#ariaTranscript::-webkit-scrollbar { width:4px; }
-#ariaTranscript::-webkit-scrollbar-track { background:transparent; }
-#ariaTranscript::-webkit-scrollbar-thumb { background:#1c3248; border-radius:2px; }
-</style>
-
 <script>
-// ══════════════════════════════════════════════════════════════════════
-//  ARIA — 121.500 AI Radio (embedded in main app)
-// ══════════════════════════════════════════════════════════════════════
-let ariaOpen = false;
-let ariaRecognition = null;
-let ariaIsRecording = false;
-let ariaAudioCtx = null;
-
-function openARIARadio() {
-    ariaOpen = !ariaOpen;
-    const panel = document.getElementById('ariaPanel');
-    panel.style.display = ariaOpen ? 'flex' : 'none';
-    if (ariaOpen) {
-        ariaCheckStatus();
-        ariaLoadRouteContext();
-        if (!document.getElementById('ariaTranscript').children.length) {
-            ariaAppendSystem('ARIA online. 121.500 AI active. Ask me anything about your route, fuel, or contrail risk. Hold PTT to speak.');
-        }
-    }
-}
-
-function closeARIA() {
-    ariaOpen = false;
-    document.getElementById('ariaPanel').style.display = 'none';
-}
-
-// ── Status check ──────────────────────────────────────────────────────
-async function ariaCheckStatus() {
-    try {
-        const r = await fetch(`${API}/radio/status`);
-        const d = await r.json();
-        const dot = document.getElementById('ariaStatusDot');
-        const bar = document.getElementById('ariaStatusBar');
-        if (d.tts_status === 'online') {
-            dot.style.background = '#00ff9d';
-            dot.style.boxShadow = '0 0 8px #00ff9d';
-            bar.style.color = '#00ff9d';
-            bar.textContent = 'ARIA ONLINE — ElevenLabs voice active | ' + (d.aria_status === 'online' ? 'Claude AI' : 'Physics engine');
-        } else {
-            dot.style.background = '#d49820';
-            dot.style.boxShadow = '0 0 8px #d49820';
-            bar.style.color = '#d49820';
-            bar.textContent = 'ARIA PARTIAL — voice only, no Claude key';
-        }
-    } catch {
-        document.getElementById('ariaStatusDot').style.background = '#c44040';
-        document.getElementById('ariaStatusBar').textContent = 'Backend offline — run: python3 backend/main.py';
-    }
-}
-
-// ── Auto-load route context ───────────────────────────────────────────
-function ariaLoadRouteContext() {
-    try {
-        const raw = localStorage.getItem('ecoflight_aria_context');
-        if (raw) {
-            const ctx = JSON.parse(raw);
-            if (ctx.origin && ctx.destination) {
-                ariaAppendSystem(`Route loaded: ${ctx.origin} → ${ctx.destination} | ${ctx.aircraft} | EcoFlight saved ${Math.round(ctx.fuel_saved_kg||0)} kg fuel`);
-            }
-        }
-    } catch(e) {}
-}
-
-// ── Build flight context from localStorage (set by renderResults) ─────
-function ariaBuildFlightContext() {
-    try {
-        const raw = localStorage.getItem('ecoflight_aria_context');
-        if (raw) return JSON.parse(raw);
-    } catch(e) {}
-    return {
-        aircraft: 'B737', flight_phase: 'cruise',
-        current_altitude_ft: 35000, optimal_altitude_ft: 37000,
-        fuel_remaining_kg: 8000, total_fuel_kg: 15000,
-        fuel_burn_rate_kg_per_hr: 2200,
-        distance_remaining_nm: 800, groundspeed_kt: 460,
-        wind_component_kt: 15, contrail_risk: 'medium', efficiency_pct: 94.0
-    };
-}
-
-// ── Push-to-Talk ──────────────────────────────────────────────────────
-function ariaStartRecording() {
-    if (ariaIsRecording) return;
-    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRec) {
-        ariaAppendSystem('Speech not supported. Use Chrome. Type your question below.');
-        return;
-    }
-    ariaIsRecording = true;
-    const btn = document.getElementById('ariaPTTBtn');
-    const lbl = document.getElementById('ariaPTTLabel');
-    btn.classList.add('recording');
-    btn.textContent = '🔴';
-    lbl.textContent = 'TRANSMITTING...';
-
-    ariaRecognition = new SpeechRec();
-    ariaRecognition.lang = 'en-US';
-    ariaRecognition.continuous = false;
-    ariaRecognition.interimResults = false;
-
-    ariaRecognition.onresult = (e) => {
-        const text = e.results[0][0].transcript;
-        document.getElementById('ariaTextInput').value = text;
-    };
-    ariaRecognition.onerror = () => ariaResetPTT();
-    ariaRecognition.onend = () => {
-        if (ariaIsRecording) {
-            const q = document.getElementById('ariaTextInput').value.trim();
-            if (q) ariaQuery(q);
-            ariaResetPTT();
-        }
-    };
-    ariaRecognition.start();
-}
-
-function ariaStopRecording() {
-    if (!ariaIsRecording) return;
-    ariaIsRecording = false;
-    if (ariaRecognition) ariaRecognition.stop();
-    ariaResetPTT();
-}
-
-function ariaResetPTT() {
-    ariaIsRecording = false;
-    const btn = document.getElementById('ariaPTTBtn');
-    btn.classList.remove('recording');
-    btn.textContent = '🎙';
-    document.getElementById('ariaPTTLabel').textContent = 'HOLD TO TALK';
-}
-
-function ariaSendText() {
-    const q = document.getElementById('ariaTextInput').value.trim();
-    if (!q) return;
-    document.getElementById('ariaTextInput').value = '';
-    ariaQuery(q);
-}
-
-// ── Core query to ARIA backend ────────────────────────────────────────
-async function ariaQuery(query) {
-    ariaAppendPilot(query);
-    const typingId = ariaAppendTyping();
-
-    try {
-        const res = await fetch(`${API}/radio/query`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                query: query,
-                flight_context: ariaBuildFlightContext(),
-                include_audio: true
-            })
-        });
-        const data = await res.json();
-        ariaRemoveTyping(typingId);
-        ariaAppendARIA(data.aria_response || data.response_text, data.urgency);
-        if (data.audio_base64) ariaPlayAudio(data.audio_base64);
-    } catch {
-        ariaRemoveTyping(typingId);
-        ariaAppendSystem('Cannot reach backend. Make sure FastAPI is running.');
-    }
-}
-
-// ── Audio playback ────────────────────────────────────────────────────
-function ariaPlayAudio(base64) {
-    try {
-        const bytes = atob(base64);
-        const arr = new Uint8Array(bytes.length);
-        for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
-        const blob = new Blob([arr], {type: 'audio/mpeg'});
-        const url = URL.createObjectURL(blob);
-        const audio = new Audio(url);
-        audio.play().catch(() => {});
-    } catch(e) {}
-}
-
-// ── Transcript helpers ────────────────────────────────────────────────
-function ariaAppendPilot(text) {
-    const t = document.getElementById('ariaTranscript');
-    const el = document.createElement('div');
-    el.style.cssText = 'display:flex;flex-direction:column;align-items:flex-end;';
-    el.innerHTML = `
-        <div style="font-size:0.5rem;color:#4a6070;letter-spacing:1px;margin-bottom:3px;">PILOT</div>
-        <div style="background:#0a1520;border:1px solid #1c3248;border-radius:8px 8px 2px 8px;
-            padding:8px 12px;max-width:85%;font-size:0.65rem;color:#c8d6e2;line-height:1.5;">${text}</div>`;
-    t.appendChild(el);
-    t.scrollTop = t.scrollHeight;
-}
-
-function ariaAppendARIA(text, urgency) {
-    const t = document.getElementById('ariaTranscript');
-    const colors = {urgent:'#ff4444', advisory:'#d49820', routine:'#00ff9d'};
-    const color = colors[urgency] || '#00ff9d';
-    const el = document.createElement('div');
-    el.style.cssText = 'display:flex;flex-direction:column;align-items:flex-start;';
-    el.innerHTML = `
-        <div style="font-size:0.5rem;letter-spacing:1px;margin-bottom:3px;color:${color};">ARIA</div>
-        <div style="background:#001a10;border:1px solid ${color}44;border-left:3px solid ${color};
-            border-radius:2px 8px 8px 8px;padding:8px 12px;max-width:95%;
-            font-size:0.65rem;color:#c8d6e2;line-height:1.6;">${text}</div>`;
-    t.appendChild(el);
-    t.scrollTop = t.scrollHeight;
-}
-
-function ariaAppendSystem(text) {
-    const t = document.getElementById('ariaTranscript');
-    const el = document.createElement('div');
-    el.style.cssText = 'text-align:center;font-size:0.55rem;color:#2e5070;padding:4px 0;letter-spacing:0.5px;';
-    el.textContent = text;
-    t.appendChild(el);
-    t.scrollTop = t.scrollHeight;
-}
-
-let _ariaTypingCounter = 0;
-function ariaAppendTyping() {
-    const id = 'ariaTyping' + (++_ariaTypingCounter);
-    const t = document.getElementById('ariaTranscript');
-    const el = document.createElement('div');
-    el.id = id;
-    el.style.cssText = 'display:flex;align-items:flex-start;gap:6px;';
-    el.innerHTML = `<div style="font-size:0.5rem;color:#00ff9d;letter-spacing:1px;margin-top:2px;">ARIA</div>
-        <div style="color:#00ff9d;font-size:0.9rem;animation:ariaBlink 1s infinite;">▌</div>`;
-    t.appendChild(el);
-    t.scrollTop = t.scrollHeight;
-    return id;
-}
-
-function ariaRemoveTyping(id) {
-    const el = document.getElementById(id);
-    if (el) el.remove();
-}
-</script>
-
-<style>
-@keyframes ariaBlink { 0%,100%{opacity:1} 50%{opacity:0} }
-</style>
-
-<script>
-const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:8000'
-    : '';
+const API = 'http://localhost:8000';
 let selectedMode = 'climate';
 let activeTab = 'preset';   // 'preset' | 'custom'
 let isComputing = false;
@@ -1294,75 +1153,11 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-// ── ARIA RADIO — toggles embedded panel (defined above in HTML) ──────────────
-// openARIARadio() is defined in the ARIA panel script block above
-
-// ── SATELLITE / NIGHT TOGGLE ────────────────────────────────────────────────
-let viewMode = 'sat';
-function toggleViewMode() {
-    const btn = document.getElementById('viewToggleBtn');
-    if (viewMode === 'sat') {
-        viewMode = 'night';
-        globe.globeImageUrl('https://unpkg.com/three-globe/example/img/earth-night.jpg').atmosphereColor('#1a8fff').atmosphereAltitude(0.2);
-        if (btn) { btn.textContent = '☀ DAY VIEW'; btn.style.borderColor = '#8888ff'; btn.style.color = '#8888ff'; }
-    } else {
-        viewMode = 'sat';
-        globe.globeImageUrl('https://unpkg.com/three-globe/example/img/earth-day.jpg').atmosphereColor('#4ac8ff').atmosphereAltitude(0.28);
-        if (btn) { btn.textContent = '🛰 SATELLITE'; btn.style.borderColor = '#3aaddc'; btn.style.color = '#3aaddc'; }
-    }
-}
-
-// ── LIVE FLIGHTS (OPENSKY) ──────────────────────────────────────────────────
-let liveFlightsVisible = false;
-let liveFlightsData = [];
-let liveFlightsPollTimer = null;
-
-async function toggleLiveFlights() {
-    if (!globe) return;
-    liveFlightsVisible = !liveFlightsVisible;
-    const btn = document.getElementById('liveFlightsBtn');
-    if (liveFlightsVisible) {
-        if (btn) { btn.textContent = '⏳ FETCHING...'; btn.disabled = true; }
-        await fetchAndRenderLiveFlights();
-        if (btn) { btn.disabled = false; }
-        liveFlightsPollTimer = setInterval(fetchAndRenderLiveFlights, 60000);
-    } else {
-        clearInterval(liveFlightsPollTimer);
-        hideLiveFlights();
-        if (btn) { btn.textContent = '✈ LIVE'; btn.style.background = '#0a1a0a'; }
-    }
-}
-
-async function fetchAndRenderLiveFlights() {
-    const btn = document.getElementById('liveFlightsBtn');
-    try {
-        const res = await fetch(`${API}/live-flights`);
-        const data = await res.json();
-        if (!data.flights?.length) return;
-        liveFlightsData = data.flights.map(f => ({
-            type: 'live', lat: f.lat, lng: f.lon,
-            alt: f.alt_globe || 0.015, alt_ft: f.alt_ft,
-            heading: f.heading, callsign: f.callsign,
-            speed_kt: f.speed_kt, country: f.country
-        }));
-        const existing = (globe.htmlElementsData() || []).filter(d => d.type !== 'live');
-        globe.htmlElementsData([...existing, ...liveFlightsData]);
-        const src = data.source?.includes('Demo') ? 'DEMO' : 'LIVE';
-        if (btn) { btn.textContent = `✈ ${src}: ${data.flights.length}`; btn.style.background = '#0a2a0a'; }
-    } catch(e) { console.error('Live flights error', e); }
-}
-
-function hideLiveFlights() {
-    if (!globe) return;
-    globe.htmlElementsData((globe.htmlElementsData() || []).filter(d => d.type !== 'live'));
-    liveFlightsData = [];
-}
-
 // ── ELEVENLABS PILOT WELCOME AUDIO ───────────────────────────────────────────
 // Award: Best Use of ElevenLabs — Pilot welcome announcement on route compute.
 // To enable live TTS: paste your ElevenLabs API key below.
 // Voice: "Daniel" (EL voice ID onwK4e9ZLuTAKqWW03F9) — British, calm, authoritative.
-const ELEVENLABS_API_KEY = 'sk_1456c213d59ac750a4226882e49d203da059398edb66d970';
+const ELEVENLABS_API_KEY = ''; // ← paste your key here
 const ELEVENLABS_VOICE_ID = 'onwK4e9ZLuTAKqWW03F9';
 const WELCOME_SCRIPT =
     'Ladies and gentlemen, welcome aboard EcoFlight A-I. ' +
@@ -1438,7 +1233,7 @@ function showExploringPaths() {
     // Dim waypoint dots
     const pts = NAT_WPS.map(w => ({
         lat: w.lat, lng: w.lng,
-        color: 'rgba(0,229,255,0.18)', radius: 0.22, alt: 0.004, label: w.code
+        color: 'rgba(92,132,155,0.25)', radius: 0.22, alt: 0.004, label: w.code
     }));
     // All possible dim edges (great-circle arcs within ~3000 km)
     const dimArcs = [];
@@ -1543,9 +1338,9 @@ function initGlobe() {
     const container = document.getElementById('globeViz');
 
     globe = Globe()(container)
-        .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-day.jpg')
-        .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
-        .backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png')
+        .globeImageUrl('https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-night.jpg')
+        .bumpImageUrl('https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-topology.png')
+        .backgroundImageUrl('https://cdn.jsdelivr.net/npm/three-globe/example/img/night-sky.png')
         .atmosphereColor('#3aaddc')
         .atmosphereAltitude(0.15)
         .pointOfView({ lat: 28, lng: 20, altitude: 2.15 })
@@ -1577,7 +1372,7 @@ function initGlobe() {
                 inner.style.transformOrigin = '50% 50%';
                 inner.innerHTML = (
                     '<svg width="44" height="44" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">' +
-                    '<g fill="#3aaddc" stroke="#07101c" stroke-width="0.8" stroke-linejoin="round">' +
+                    '<g fill="#6A99B5" stroke="#07101c" stroke-width="0.8" stroke-linejoin="round">' +
                     '<ellipse cx="22" cy="20" rx="3" ry="14"/>' +
                     '<path d="M22 18 L3 30 L3 33 L22 26 L41 33 L41 30 Z"/>' +
                     '<path d="M22 33 L16 41 L16 42 L22 40 L28 42 L28 41 Z"/>' +
@@ -1588,32 +1383,16 @@ function initGlobe() {
                 _planeRotateEl = inner;   // store direct reference — updated each tick()
                 return wrap;
             }
-            if (d.type === 'live') {
-                const sz = d.alt_ft > 35000 ? 40 : d.alt_ft > 25000 ? 34 : 28;
-                const canvas = document.createElement('canvas');
-                canvas.width = sz; canvas.height = sz;
-                const ctx2 = canvas.getContext('2d');
-                ctx2.font = Math.round(sz * 0.75) + 'px serif';
-                ctx2.textAlign = 'center'; ctx2.textBaseline = 'middle';
-                ctx2.shadowColor = 'rgba(180,220,255,0.9)'; ctx2.shadowBlur = 8;
-                ctx2.fillStyle = '#ffffff'; ctx2.globalAlpha = 0.9;
-                ctx2.fillText('✈', sz/2, sz/2);
-                const h = d.heading != null ? Number(d.heading) - 90 : 0;
-                canvas.style.transform = `translate(-50%,-50%) rotate(${h}deg)`;
-                canvas.style.cursor = 'pointer';
-                canvas.title = `${d.callsign} | FL${Math.floor(d.alt_ft/100)} | ${d.speed_kt}kt | ${d.country}`;
-                return canvas;
-            }
             const el = document.createElement('div');
-            el.style.fontFamily = "'Share Tech Mono', monospace";
+            el.style.fontFamily = "'Instrument Sans', 'Open Sans', sans-serif";
             el.style.fontSize = '10px';
             el.style.fontWeight = '700';
             el.style.color = d.color;
-            el.style.textShadow = `0 0 8px ${d.color}`;
-            el.style.background = 'rgba(0,0,0,0.6)';
+            el.style.textShadow = `0 0 6px ${d.color}`;
+            el.style.background = 'rgba(7,16,28,0.75)';
             el.style.padding = '2px 6px';
-            el.style.border = `1px solid ${d.color}`;
-            el.style.borderRadius = '2px';
+            el.style.border = `1px solid ${d.color}40`;
+            el.style.borderRadius = '3px';
             el.style.pointerEvents = 'none';
             el.textContent = d.text;
             return el;
@@ -1780,31 +1559,6 @@ function renderResults(data) {
     const meta = data.metadata;
     const routes = data.routes;
 
-    // ── Bridge route data to ARIA Radio via localStorage ─────────────
-    const climateRoute = routes.climate_optimized || routes.fuel_optimized || routes.standard || {};
-    const wps = climateRoute.waypoints || [];
-    const midWp = wps[Math.floor(wps.length / 2)] || {};
-    const ariaContext = {
-        aircraft: meta.aircraft,
-        origin: meta.origin.code,
-        destination: meta.destination.code,
-        flight_phase: 'cruise',
-        current_altitude_ft: midWp.altitude_ft || 35000,
-        optimal_altitude_ft: 37000,
-        total_fuel_kg: Math.round((climateRoute.fuel_kg || 0) * 1.15),
-        fuel_remaining_kg: Math.round((climateRoute.fuel_kg || 0) * 0.6),
-        fuel_burn_rate_kg_per_hr: Math.round((climateRoute.fuel_kg || 0) / Math.max(meta.distance_nm / 480, 1)),
-        distance_remaining_nm: Math.round(meta.distance_nm * 0.5),
-        fuel_saved_kg: savings.fuel_saved_kg,
-        co2_saved_kg: savings.co2_saved_kg,
-        cost_saved_usd: savings.cost_saved_usd,
-        efficiency_pct: 100 - savings.fuel_saved_percent,
-        contrail_risk: (climateRoute.contrail_risk_score || 0) > 0.5 ? 'medium' : 'low',
-        groundspeed_kt: 480,
-        wind_component_kt: 15
-    };
-    try { localStorage.setItem('ecoflight_aria_context', JSON.stringify(ariaContext)); } catch(e) {}
-
     // Update route overlay
     document.getElementById('roOrigin').textContent = meta.origin.code;
     document.getElementById('roDest').textContent = meta.destination.code;
@@ -1843,6 +1597,23 @@ function renderResults(data) {
     insightBox.textContent = data.insight;
     insightBox.style.display = 'block';
 
+    // Pass live flight data to ARIA co-pilot
+    if (window.ARIA) {
+        ARIA.setContext({
+            aircraft:        meta.aircraft,
+            origin:          meta.origin.code,
+            destination:     meta.destination.code,
+            distance_nm:     meta.distance_nm,
+            fuel_saved_kg:   savings.fuel_saved_kg,
+            co2_saved_kg:    savings.co2_saved_kg,
+            contrail_saved_kg: savings.contrail_warming_avoided_kg,
+            cost_saved_usd:  savings.cost_saved_usd,
+            total_warming_saved_kg: savings.total_warming_saved_kg,
+            fuel_standard_kg:  routes.standard.fuel_kg,
+            fuel_eco_kg:       routes.climate_optimized.fuel_kg,
+        });
+    }
+
     // 4D block times
     if (data.trajectory_4d && data.trajectory_4d.block_time_min) {
         const b = data.trajectory_4d.block_time_min;
@@ -1870,16 +1641,16 @@ function renderResults(data) {
     const ecoNames = ecoWps.map(w => w.waypoint_id || w.id).filter(Boolean)
         .filter((v,i,a) => a.indexOf(v) === i).join(' → ');
     whyBox.innerHTML =
-        `<span style="color:#3aaddc;font-weight:600;">Optimal path visits: </span>` +
-        `<span style="color:#d49820;">${ecoNames || 'NAT corridor waypoints'}</span><br><br>` +
-        `<span style="color:#4e6a7e;">Route distance: </span>` +
-        `<span style="color:#c8d6e2;">${ecoDist.toFixed(0)} NM</span>` +
+        `<span style="color:var(--blue-mid);font-weight:600;">Optimal path visits: </span>` +
+        `<span style="color:var(--amber);">${ecoNames || 'NAT corridor waypoints'}</span><br><br>` +
+        `<span style="color:var(--text-muted);">Route distance: </span>` +
+        `<span style="color:var(--text);">${ecoDist.toFixed(0)} NM</span>` +
         (distDiff > 0
-            ? ` <span style="color:#d49820;">(+${distDiff.toFixed(0)} NM vs direct — worth it)</span>`
+            ? ` <span style="color:var(--amber);">(+${distDiff.toFixed(0)} NM vs direct — worth it)</span>`
             : '') + `<br>` +
-        `<span style="color:#4e6a7e;">Fuel saving vs baseline: </span>` +
-        `<span style="color:#1db86e;">${savings.fuel_saved_kg.toFixed(0)} kg (${savings.fuel_saved_percent.toFixed(1)}%)</span><br><br>` +
-        `<span style="color:#2d4a5e;font-size:0.65rem;">` +
+        `<span style="color:var(--text-muted);">Fuel saving vs baseline: </span>` +
+        `<span style="color:var(--green);">${savings.fuel_saved_kg.toFixed(0)} kg (${savings.fuel_saved_percent.toFixed(1)}%)</span><br><br>` +
+        `<span style="color:var(--text-dim);font-size:0.65rem;">` +
         `The path arcs toward higher latitudes to exploit the jet stream (up to 90 kt tailwind) ` +
         `and sidesteps ice-supersaturated air layers where contrails persist for hours. ` +
         `It covers more nautical miles but burns less fuel and causes less warming.</span>`;
@@ -1929,7 +1700,8 @@ function renderGlobe(data) {
     const fuelLine = waypointsToPathTuples(fuelWps);
     const ecoLine = waypointsToPathTuples(climWps);
 
-    // Three paths: fuel-efficient (green), CO2-optimal (blue), standard baseline (grey dashed)
+    // Show only 2 paths: dim grey standard baseline + bold EcoFlight optimal path.
+    // Keeping three overlapping paths clutters the globe and confuses viewers.
     const pathStd = {
         points: stdLine,
         color: 'rgba(90,110,130,0.45)',   // muted slate — clearly secondary
@@ -1938,27 +1710,19 @@ function renderGlobe(data) {
         dashAnim: 0,
         label: 'Standard direct route (baseline reference)'
     };
-    const pathFuel = {
-        points: fuelLine,
-        color: '#1db86e',
-        dashLen: 1,
-        dashGap: 0,
-        dashAnim: 0,
-        label: 'Fuel-efficient path — minimum fuel burn via wind optimization'
-    };
     const pathEco = {
         points: ecoLine,
-        color: '#3aaddc',
+        color: '#6A99B5',
         dashLen: 1,
         dashGap: 0,
         dashAnim: 0,
-        label: 'CO₂-optimal path — fuel + contrail avoidance optimized'
+        label: 'EcoFlight 4D climate-optimal path — hover waypoints for FL / ETA'
     };
 
     // Points: airports + contrail zones
     const points = [
-        { lat: meta.origin.lat, lng: meta.origin.lon, color: '#1db86e', radius: 0.5, alt: 0.02, label: meta.origin.code },
-        { lat: meta.destination.lat, lng: meta.destination.lon, color: '#3aaddc', radius: 0.5, alt: 0.02, label: meta.destination.code },
+        { lat: meta.origin.lat, lng: meta.origin.lon, color: '#3a8c6e', radius: 0.5, alt: 0.02, label: meta.origin.code },
+        { lat: meta.destination.lat, lng: meta.destination.lon, color: '#6A99B5', radius: 0.5, alt: 0.02, label: meta.destination.code },
     ];
 
     // Contrail risk zones
@@ -1993,13 +1757,12 @@ function renderGlobe(data) {
 
     // HTML labels for airports
     const labels = [
-        { lat: meta.origin.lat, lng: meta.origin.lon, text: meta.origin.code, color: '#1db86e', alt: 0.05 },
-        { lat: meta.destination.lat, lng: meta.destination.lon, text: meta.destination.code, color: '#3aaddc', alt: 0.05 },
+        { lat: meta.origin.lat, lng: meta.origin.lon, text: meta.origin.code, color: '#3a8c6e', alt: 0.05 },
+        { lat: meta.destination.lat, lng: meta.destination.lon, text: meta.destination.code, color: '#7CB4D3', alt: 0.05 },
     ];
 
     const pathPayload = [];
     if (pathStd.points.length >= 2) pathPayload.push(pathStd);
-    if (pathFuel.points.length >= 2) pathPayload.push(pathFuel);
     if (pathEco.points.length >= 2) pathPayload.push(pathEco);
 
     // Label intermediate waypoints on the climate-optimal path
@@ -2032,6 +1795,9 @@ function renderGlobe(data) {
     const midLng = greatCircleMidpointLng(meta.origin.lon, meta.destination.lon);
     globe.pointOfView({ lat: midLat, lng: midLng, altitude: 2.35 }, 1600);
 
+    render4dProfileChart(data.routes);
+    document.getElementById('profile4dWrap').classList.add('visible');
+
     startPlaneAlongPath(climWps, labels);
 
     // Resume slow auto-rotate so the globe keeps moving after results render
@@ -2055,10 +1821,13 @@ function render4dProfileChart(routes) {
             .sort((a, b) => a.x - b.x);
         if (raw.length === 0) return [];
         // Any aircraft departs from ground (0 ft) and lands back at ground (0 ft).
-        // Ensure the profile always touches the baseline at both ends.
+        // Only inject a ground point if the profile is missing the takeoff/landing
+        // phase entirely — i.e. first waypoint is already at cruise altitude (>5000 ft).
+        // Using 50 ft incorrectly triggered on normal climbout data and caused
+        // an instant jump from 0 → cruise, which is physically wrong.
         const result = [...raw];
-        if (result[0].y > 50)      result.unshift({ x: result[0].x, y: 0 });
-        if (result[result.length - 1].y > 50) result.push({ x: result[result.length - 1].x, y: 0 });
+        if (result[0].y > 5000)      result.unshift({ x: result[0].x, y: 0 });
+        if (result[result.length - 1].y > 5000) result.push({ x: result[result.length - 1].x, y: 0 });
         return result;
     };
 
@@ -2094,7 +1863,7 @@ function render4dProfileChart(routes) {
                     label: 'EcoFlight',
                     data: pts(ecoWps),
                     showLine: true,
-                    borderColor: '#3aaddc',
+                    borderColor: '#6A99B5',
                     backgroundColor: 'transparent',
                     borderWidth: 2,
                     pointRadius: 0,
@@ -2107,21 +1876,21 @@ function render4dProfileChart(routes) {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    labels: { color: '#4e6a7e', font: { size: 9, family: 'Share Tech Mono' } }
+                    labels: { color: 'rgba(92,132,155,0.85)', font: { size: 9, family: 'Instrument Sans' } }
                 }
             },
             scales: {
                 x: {
                     type: 'linear',
-                    title: { display: true, text: 'Along-track distance (NM)', color: '#3a5a6e', font: { size: 9 } },
-                    ticks: { color: '#3a5a6e', maxTicksLimit: 8 },
-                    grid: { color: '#1c3248' }
+                    title: { display: true, text: 'Along-track distance (NM)', color: 'rgba(92,132,155,0.7)', font: { size: 9 } },
+                    ticks: { color: 'rgba(92,132,155,0.7)', maxTicksLimit: 8 },
+                    grid: { color: 'rgba(92,132,155,0.12)' }
                 },
                 y: {
                     min: 0,
-                    title: { display: true, text: 'Altitude (ft)', color: '#3a5a6e', font: { size: 9 } },
-                    ticks: { color: '#3a5a6e' },
-                    grid: { color: '#1c3248' }
+                    title: { display: true, text: 'Altitude (ft)', color: 'rgba(92,132,155,0.7)', font: { size: 9 } },
+                    ticks: { color: 'rgba(92,132,155,0.7)' },
+                    grid: { color: 'rgba(92,132,155,0.12)' }
                 }
             }
         }
@@ -2156,7 +1925,7 @@ function renderWarmingChart(routes) {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    labels: { color: '#4e6a7e', font: { family: 'Share Tech Mono', size: 9 } }
+                    labels: { color: '#5C849B', font: { family: 'Instrument Sans', size: 9 } }
                 },
                 tooltip: {
                     callbacks: {
@@ -2167,14 +1936,14 @@ function renderWarmingChart(routes) {
             scales: {
                 x: {
                     stacked: true,
-                    ticks: { color: '#3a5a6e', font: { family: 'Share Tech Mono', size: 9 } },
-                    grid: { color: '#1c3248' }
+                    ticks: { color: '#5C849B', font: { family: 'Instrument Sans', size: 9 } },
+                    grid: { color: 'rgba(92,132,155,0.1)' }
                 },
                 y: {
                     stacked: true,
-                    ticks: { color: '#3a5a6e', font: { family: 'Share Tech Mono', size: 9 } },
-                    grid: { color: '#1c3248' },
-                    title: { display: true, text: 'kg CO₂-equivalent', color: '#3a5a6e', font: { family: 'Share Tech Mono', size: 9 } }
+                    ticks: { color: '#5C849B', font: { family: 'Instrument Sans', size: 9 } },
+                    grid: { color: 'rgba(92,132,155,0.1)' },
+                    title: { display: true, text: 'kg CO₂-equivalent', color: '#5C849B', font: { family: 'Instrument Sans', size: 9 } }
                 }
             }
         }
@@ -2246,6 +2015,469 @@ function loadAirports() {
     updateWeightDisplay();
     initGlobe();
 })();
+
+// ── COLLAPSIBLE PANELS ────────────────────────────────────────────────────────
+function togglePanel(side) {
+    const main = document.querySelector('.main');
+    if (side === 'left') {
+        const panel = document.getElementById('leftPanel');
+        const btn = document.getElementById('leftCollapseBtn');
+        const collapsed = panel.classList.toggle('collapsed');
+        main.classList.toggle('left-collapsed', collapsed);
+        btn.textContent = collapsed ? '›' : '‹';
+        btn.title = collapsed ? 'Expand panel' : 'Collapse panel';
+    } else {
+        const panel = document.getElementById('rightPanel');
+        const btn = document.getElementById('rightCollapseBtn');
+        const collapsed = panel.classList.toggle('collapsed');
+        main.classList.toggle('right-collapsed', collapsed);
+        btn.textContent = collapsed ? '‹' : '›';
+        btn.title = collapsed ? 'Expand panel' : 'Collapse panel';
+    }
+}
+</script>
+
+<script>
+/**
+ * ARIA — 121.500 AI Radio Widget
+ * EcoFlight AI | Universal AI Co-Pilot Frequency
+ *
+ * HOW TO ADD TO ANY DASHBOARD (3 steps):
+ * ─────────────────────────────────────────
+ * Step 1: Add this script tag to your HTML <head> or before </body>:
+ *
+ *   <script src="aria-widget.js"></script>
+ *
+ * Step 2: Add a button anywhere to open ARIA:
+ *
+ *   <button onclick="ARIA.open()">🎙 ARIA — 121.500 AI</button>
+ *
+ * Step 3: (Optional) Set flight data so ARIA knows your route:
+ *
+ *   ARIA.setContext({
+ *     aircraft: 'B737',
+ *     origin: 'KJFK',
+ *     destination: 'KLAX',
+ *     fuel_remaining_kg: 8000,
+ *     fuel_saved_kg: 380,
+ *     co2_saved_kg: 1200,
+ *     cost_saved_usd: 304
+ *   });
+ *
+ * That's it. ARIA handles the rest — voice input, AI response, ElevenLabs speech.
+ *
+ * CONFIG (optional — change these at the top of this file):
+ *   ARIA_BACKEND   — URL of the EcoFlight backend (default: http://localhost:8000)
+ *   ARIA_XI_KEY    — Your ElevenLabs API key
+ *   ARIA_VOICE_ID  — ElevenLabs voice ID (default: Roger)
+ */
+
+(function () {
+  // ══════════════════════════════════════════════════════════════════════
+  //  CONFIG — edit these
+  // ══════════════════════════════════════════════════════════════════════
+  const ARIA_BACKEND  = 'http://localhost:8000';
+  const ARIA_XI_KEY   = 'sk_1456c213d59ac750a4226882e49d203da059398edb66d970';
+  const ARIA_VOICE_ID = 'CwhRBWXzGAHq8TQ4Fs17'; // Roger (clear pilot voice)
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  STATE
+  // ══════════════════════════════════════════════════════════════════════
+  let _open        = false;
+  let _recording   = false;
+  let _recognition = null;
+  let _flightCtx   = null;
+  let _typingCount = 0;
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  INJECT CSS
+  // ══════════════════════════════════════════════════════════════════════
+  const style = document.createElement('style');
+  style.textContent = `
+    #__ariaPanel {
+      position: fixed !important;
+      bottom: 24px !important;
+      right: 24px !important;
+      width: 380px;
+      max-height: 560px;
+      background: linear-gradient(160deg, #070f1c, #0b1825);
+      border: 1px solid rgba(0,255,157,0.25);
+      border-radius: 12px;
+      box-shadow: 0 0 40px rgba(0,255,157,0.12), 0 8px 32px rgba(0,0,0,0.8);
+      display: none;
+      flex-direction: column;
+      font-family: 'Instrument Sans', 'Courier New', monospace;
+      z-index: 2147483647 !important;
+      overflow: hidden;
+      isolation: isolate;
+    }
+    #__ariaPanel.aria-open {
+      display: flex !important;
+    }
+    #__ariaPanel * { box-sizing: border-box; }
+    #__ariaPTTBtn {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: radial-gradient(circle, #0a1e30, #061018);
+      border: 2px solid #5C849B; color: #7CB4D3;
+      font-size: 1.6rem; cursor: pointer;
+      box-shadow: 0 0 16px rgba(92,132,155,0.3);
+      transition: all 0.15s; outline: none;
+    }
+    #__ariaPTTBtn:hover {
+      border-color: #7CB4D3;
+      box-shadow: 0 0 24px rgba(124,180,211,0.4);
+    }
+    #__ariaPTTBtn.aria-recording {
+      background: radial-gradient(circle, #1a0000, #0a0000) !important;
+      border-color: #c44040 !important; color: #c44040 !important;
+      box-shadow: 0 0 30px rgba(196,64,64,0.5) !important;
+      transform: scale(1.08);
+    }
+    #__ariaTranscript::-webkit-scrollbar { width: 4px; }
+    #__ariaTranscript::-webkit-scrollbar-thumb { background: #1c3248; border-radius: 2px; }
+    @keyframes __ariaBlink { 0%,100%{opacity:1} 50%{opacity:0} }
+    .__ariaInput {
+      flex: 1; background: #0a1520; border: 1px solid #1c3248;
+      color: #c8d6e2; font-family: 'Instrument Sans','Courier New',monospace;
+      font-size: 0.7rem; padding: 7px 10px; border-radius: 5px; outline: none;
+    }
+    .__ariaInput:focus { border-color: #5C849B; }
+    .__ariaInput::placeholder { color: #2e5070; }
+    .__ariaSendBtn {
+      background: rgba(92,132,155,0.15); border: 1px solid #5C849B; color: #7CB4D3;
+      font-family: 'Instrument Sans','Courier New',monospace;
+      font-size: 0.65rem; font-weight: 600; padding: 7px 12px; border-radius: 5px;
+      cursor: pointer; letter-spacing: 0.5px; white-space: nowrap;
+    }
+    .__ariaSendBtn:hover { background: rgba(92,132,155,0.28); }
+  `;
+  document.head.appendChild(style);
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  INJECT HTML PANEL
+  // ══════════════════════════════════════════════════════════════════════
+  function buildPanel() {
+    const div = document.createElement('div');
+    div.id = '__ariaPanel';
+    div.innerHTML = `
+      <!-- Header -->
+      <div style="background:linear-gradient(90deg,#001a10,#050f1a);border-bottom:1px solid #00ff9d33;
+          padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div id="__ariaStatusDot" style="width:8px;height:8px;border-radius:50%;background:#555;
+              box-shadow:0 0 6px #555;transition:all 0.3s;"></div>
+          <span style="color:#00ff9d;font-size:0.7rem;letter-spacing:2px;font-weight:bold;">ARIA — 121.500 AI</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="color:#00ff9d;font-size:1rem;letter-spacing:1px;">121.500</span>
+          <button onclick="ARIA.close()" style="background:none;border:none;color:#4a6070;
+              font-size:1rem;cursor:pointer;padding:2px 6px;" title="Close">✕</button>
+        </div>
+      </div>
+      <!-- Status bar -->
+      <div id="__ariaStatusBar" style="padding:5px 14px;font-size:0.6rem;color:#4a6070;
+          border-bottom:1px solid #0e2030;letter-spacing:1px;">Connecting to ARIA...</div>
+      <!-- Transcript -->
+      <div id="__ariaTranscript" style="flex:1;overflow-y:auto;padding:12px 14px;
+          min-height:200px;max-height:300px;display:flex;flex-direction:column;gap:10px;
+          scrollbar-width:thin;scrollbar-color:#1c3248 transparent;"></div>
+      <!-- PTT + Text input -->
+      <div style="padding:12px 14px;border-top:1px solid #0e2030;">
+        <div style="text-align:center;margin-bottom:10px;">
+          <button id="__ariaPTTBtn"
+            onmousedown="ARIA._startRec()" onmouseup="ARIA._stopRec()"
+            ontouchstart="ARIA._startRec()" ontouchend="ARIA._stopRec()"
+            title="Hold to Talk">🎙</button>
+          <div id="__ariaPTTLabel" style="margin-top:6px;font-size:0.55rem;color:#4a6070;
+              letter-spacing:2px;">HOLD TO TALK</div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <input id="__ariaInput" class="__ariaInput" type="text"
+            placeholder="Or type your question..."
+            onkeydown="if(event.key==='Enter') ARIA._sendText()" />
+          <button class="__ariaSendBtn" onclick="ARIA._sendText()">SEND</button>
+        </div>
+      </div>
+    `;
+    document.documentElement.appendChild(div);
+  }
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  PUBLIC API  (window.ARIA)
+  // ══════════════════════════════════════════════════════════════════════
+  window.ARIA = {
+
+    /** Open/close the panel */
+    open() {
+      _open = true;
+      const panel = document.getElementById('__ariaPanel');
+      panel.classList.add('aria-open');
+      _checkStatus();
+      const t = document.getElementById('__ariaTranscript');
+      if (!t.children.length) {
+        _sysMsg('ARIA online. 121.500 AI active. Hold PTT and speak, or type a question.');
+        if (_flightCtx && _flightCtx.origin) {
+          _sysMsg(`Route loaded: ${_flightCtx.origin} → ${_flightCtx.destination || '?'} | EcoFlight saved ${Math.round(_flightCtx.fuel_saved_kg || 0)} kg fuel`);
+        }
+      }
+    },
+
+    close() {
+      _open = false;
+      const panel = document.getElementById('__ariaPanel');
+      if (panel) panel.classList.remove('aria-open');
+    },
+
+    toggle() { _open ? this.close() : this.open(); },
+
+    /**
+     * Pass flight data so ARIA can give route-specific answers.
+     * Call this after your route is computed.
+     *
+     * @param {Object} ctx - flight context object
+     */
+    setContext(ctx) {
+      _flightCtx = ctx;
+      try { localStorage.setItem('ecoflight_aria_context', JSON.stringify(ctx)); } catch(e) {}
+    },
+
+    // ── Internal (called from inline HTML handlers) ───────────────────
+    _startRec: () => _startRecording(),
+    _stopRec:  () => _stopRecording(),
+    _sendText: () => _sendText(),
+  };
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  STATUS CHECK
+  // ══════════════════════════════════════════════════════════════════════
+  async function _checkStatus() {
+    try {
+      const r = await fetch(`${ARIA_BACKEND}/radio/status`);
+      const d = await r.json();
+      const dot = document.getElementById('__ariaStatusDot');
+      const bar = document.getElementById('__ariaStatusBar');
+      dot.style.background = '#00ff9d';
+      dot.style.boxShadow = '0 0 8px #00ff9d';
+      bar.style.color = '#00ff9d';
+      bar.textContent = 'ARIA ONLINE — ElevenLabs voice | Physics AI engine';
+    } catch {
+      const dot = document.getElementById('__ariaStatusDot');
+      dot.style.background = '#c44040';
+      dot.style.boxShadow = '0 0 8px #c44040';
+      document.getElementById('__ariaStatusBar').textContent =
+        'Backend offline — start EcoFlight backend on port 8000';
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  FLIGHT CONTEXT
+  // ══════════════════════════════════════════════════════════════════════
+  function _buildCtx() {
+    if (_flightCtx) return _flightCtx;
+    try {
+      const raw = localStorage.getItem('ecoflight_aria_context');
+      if (raw) return JSON.parse(raw);
+    } catch(e) {}
+    return {
+      aircraft: 'B737', flight_phase: 'cruise',
+      current_altitude_ft: 35000, optimal_altitude_ft: 37000,
+      fuel_remaining_kg: 8000, total_fuel_kg: 15000,
+      fuel_burn_rate_kg_per_hr: 2200, distance_remaining_nm: 800,
+      groundspeed_kt: 460, wind_component_kt: 15,
+      contrail_risk: 'medium', efficiency_pct: 94.0
+    };
+  }
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  PUSH-TO-TALK
+  // ══════════════════════════════════════════════════════════════════════
+  function _startRecording() {
+    if (_recording) return;
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRec) {
+      _sysMsg('Speech recognition requires Chrome. Type your question below.');
+      return;
+    }
+    _recording = true;
+    const btn = document.getElementById('__ariaPTTBtn');
+    btn.classList.add('aria-recording');
+    btn.textContent = '🔴';
+    document.getElementById('__ariaPTTLabel').textContent = 'TRANSMITTING...';
+
+    _recognition = new SpeechRec();
+    _recognition.lang = 'en-US';
+    _recognition.continuous = false;
+    _recognition.interimResults = false;
+    _recognition.onresult = (e) => {
+      document.getElementById('__ariaInput').value = e.results[0][0].transcript;
+    };
+    _recognition.onerror = () => _resetPTT();
+    _recognition.onend = () => {
+      if (_recording) {
+        const q = document.getElementById('__ariaInput').value.trim();
+        if (q) _query(q);
+        _resetPTT();
+      }
+    };
+    _recognition.start();
+  }
+
+  function _stopRecording() {
+    if (!_recording) return;
+    _recording = false;
+    if (_recognition) _recognition.stop();
+    _resetPTT();
+  }
+
+  function _resetPTT() {
+    _recording = false;
+    const btn = document.getElementById('__ariaPTTBtn');
+    if (!btn) return;
+    btn.classList.remove('aria-recording');
+    btn.textContent = '🎙';
+    document.getElementById('__ariaPTTLabel').textContent = 'HOLD TO TALK';
+  }
+
+  function _sendText() {
+    const inp = document.getElementById('__ariaInput');
+    const q = inp.value.trim();
+    if (!q) return;
+    inp.value = '';
+    _query(q);
+  }
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  QUERY ARIA BACKEND
+  // ══════════════════════════════════════════════════════════════════════
+  async function _query(text) {
+    _pilotMsg(text);
+    const tid = _typingMsg();
+    try {
+      const res = await fetch(`${ARIA_BACKEND}/radio/query`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: text,
+          flight_context: _buildCtx(),
+          include_audio: false
+        })
+      });
+      const data = await res.json();
+      _removeTyping(tid);
+      const reply = data.aria_response || data.response_text || '';
+      _ariaMsg(reply, data.urgency);
+      if (reply) _speak(reply);
+    } catch {
+      _removeTyping(tid);
+      _sysMsg('Cannot reach backend. Make sure EcoFlight backend is running on port 8000.');
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  ELEVENLABS TTS (browser-direct) + browser fallback
+  // ══════════════════════════════════════════════════════════════════════
+  async function _speak(text) {
+    if (!ARIA_XI_KEY) { _speakBrowser(text); return; }
+    try {
+      const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${ARIA_VOICE_ID}`, {
+        method: 'POST',
+        headers: {
+          'xi-api-key': ARIA_XI_KEY,
+          'Content-Type': 'application/json',
+          'Accept': 'audio/mpeg'
+        },
+        body: JSON.stringify({
+          text,
+          model_id: 'eleven_flash_v2_5',
+          voice_settings: { stability: 0.55, similarity_boost: 0.75, style: 0.05, use_speaker_boost: true }
+        })
+      });
+      if (!res.ok) { _speakBrowser(text); return; }
+      const blob = await res.blob();
+      const audio = new Audio(URL.createObjectURL(blob));
+      audio.play().catch(() => _speakBrowser(text));
+    } catch { _speakBrowser(text); }
+  }
+
+  function _speakBrowser(text) {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.rate = 0.95; utt.pitch = 0.9; utt.volume = 1;
+    const v = window.speechSynthesis.getVoices();
+    const pref = v.find(x => x.name.includes('Daniel') || x.name.includes('Alex') || (x.lang === 'en-GB' && x.localService));
+    if (pref) utt.voice = pref;
+    window.speechSynthesis.speak(utt);
+  }
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  TRANSCRIPT HELPERS
+  // ══════════════════════════════════════════════════════════════════════
+  function _pilotMsg(text) {
+    const t = document.getElementById('__ariaTranscript');
+    const el = document.createElement('div');
+    el.style.cssText = 'display:flex;flex-direction:column;align-items:flex-end;';
+    el.innerHTML = `
+      <div style="font-size:0.5rem;color:#4a6070;letter-spacing:1px;margin-bottom:3px;">PILOT</div>
+      <div style="background:#0a1520;border:1px solid #1c3248;border-radius:8px 8px 2px 8px;
+          padding:8px 12px;max-width:85%;font-size:0.65rem;color:#c8d6e2;line-height:1.5;">${_esc(text)}</div>`;
+    t.appendChild(el); t.scrollTop = t.scrollHeight;
+  }
+
+  function _ariaMsg(text, urgency) {
+    const colors = { urgent: '#ff4444', advisory: '#d49820', routine: '#00ff9d' };
+    const c = colors[urgency] || '#00ff9d';
+    const t = document.getElementById('__ariaTranscript');
+    const el = document.createElement('div');
+    el.style.cssText = 'display:flex;flex-direction:column;align-items:flex-start;';
+    el.innerHTML = `
+      <div style="font-size:0.5rem;letter-spacing:1px;margin-bottom:3px;color:${c};">ARIA</div>
+      <div style="background:#001a10;border:1px solid ${c}44;border-left:3px solid ${c};
+          border-radius:2px 8px 8px 8px;padding:8px 12px;max-width:95%;
+          font-size:0.65rem;color:#c8d6e2;line-height:1.6;">${_esc(text)}</div>`;
+    t.appendChild(el); t.scrollTop = t.scrollHeight;
+  }
+
+  function _sysMsg(text) {
+    const t = document.getElementById('__ariaTranscript');
+    const el = document.createElement('div');
+    el.style.cssText = 'text-align:center;font-size:0.55rem;color:#2e5070;padding:4px 0;letter-spacing:0.5px;';
+    el.textContent = text;
+    t.appendChild(el); t.scrollTop = t.scrollHeight;
+  }
+
+  function _typingMsg() {
+    const id = '__ariaTyping' + (++_typingCount);
+    const t = document.getElementById('__ariaTranscript');
+    const el = document.createElement('div');
+    el.id = id;
+    el.style.cssText = 'display:flex;align-items:flex-start;gap:6px;';
+    el.innerHTML = `<div style="font-size:0.5rem;color:#00ff9d;letter-spacing:1px;margin-top:2px;">ARIA</div>
+      <div style="color:#00ff9d;font-size:0.9rem;animation:__ariaBlink 1s infinite;">▌</div>`;
+    t.appendChild(el); t.scrollTop = t.scrollHeight;
+    return id;
+  }
+
+  function _removeTyping(id) {
+    const el = document.getElementById(id);
+    if (el) el.remove();
+  }
+
+  function _esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  INIT
+  // ══════════════════════════════════════════════════════════════════════
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', buildPanel);
+  } else {
+    buildPanel();
+  }
+
+})();
+
 </script>
 </body>
 </html>

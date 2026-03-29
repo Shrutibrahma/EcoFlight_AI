@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EcoFlight AI — Mission Control</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap"
+    rel="stylesheet" />
+  <style>
+    /* ── Reset & base ─────────────────────────────────────────── */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      background: #0a0e1a;
+      color: #c8d0e0;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Subtle grid overlay on body ──────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(239, 159, 39, 0.022) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(239, 159, 39, 0.022) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── All content above grid ───────────────────────────────── */
+    header,
+    main,
+    footer {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       HEADER
+    ══════════════════════════════════════════════════════════ */
+    header {
+      background: rgba(10, 14, 26, 0.97);
+      border-bottom: 1px solid rgba(239, 159, 39, 0.3);
+      padding: 0 2.5rem;
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 2px 30px rgba(0, 0, 0, 0.6);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* SVG plane logo */
+    .logo-icon {
+      width: 38px;
+      height: 38px;
+      flex-shrink: 0;
+    }
+
+    .logo-wordmark {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .logo-name {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 900;
+      letter-spacing: 0.15em;
+      color: #EF9F27;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+
+    .logo-name span {
+      color: #ffffff;
+    }
+
+    .logo-tagline {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem;
+      color: #5a6a88;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #4ddd9a;
+      box-shadow: 0 0 8px rgba(77, 221, 154, 0.7);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+
+      0%,
+      100% {
+        opacity: 1;
+        box-shadow: 0 0 8px rgba(77, 221, 154, 0.7);
+      }
+
+      50% {
+        opacity: 0.6;
+        box-shadow: 0 0 16px rgba(77, 221, 154, 0.4);
+      }
+    }
+
+    .header-status {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      color: #4ddd9a;
+      letter-spacing: 0.08em;
+    }
+
+    .header-badge {
+      background: rgba(239, 159, 39, 0.12);
+      border: 1px solid rgba(239, 159, 39, 0.35);
+      border-radius: 4px;
+      padding: 4px 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem;
+      color: #EF9F27;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       HERO SECTION
+    ══════════════════════════════════════════════════════════ */
+    .hero {
+      text-align: center;
+      padding: 4rem 2rem 2.5rem;
+      max-width: 820px;
+      margin: 0 auto;
+    }
+
+    .hero-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.2em;
+      color: #EF9F27;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+      opacity: 0.9;
+    }
+
+    .hero-eyebrow::before,
+    .hero-eyebrow::after {
+      content: '──';
+      color: rgba(239, 159, 39, 0.35);
+      margin: 0 0.6em;
+    }
+
+    .hero-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 900;
+      line-height: 1.1;
+      color: #ffffff;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 0.6rem;
+    }
+
+    .hero-title .accent {
+      color: #EF9F27;
+    }
+
+    .hero-sub {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(0.75rem, 1.5vw, 0.95rem);
+      font-weight: 400;
+      color: #6a7a99;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .hero-judges {
+      display: inline-block;
+      background: rgba(239, 159, 39, 0.08);
+      border: 1px solid rgba(239, 159, 39, 0.25);
+      border-radius: 20px;
+      padding: 6px 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      color: #EF9F27;
+      letter-spacing: 0.1em;
+      margin-top: 0.8rem;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       COMPONENT GRID
+    ══════════════════════════════════════════════════════════ */
+    .grid-section {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0 2rem 3rem;
+    }
+
+    .grid-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem;
+      color: #3a4a60;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    /* 2 + 2 + 1 layout */
+    .cards-row-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.1rem;
+      margin-bottom: 1.1rem;
+    }
+
+    .cards-row-1 {
+      display: grid;
+      grid-template-columns: 1fr;
+      max-width: 540px;
+      margin: 0 auto;
+    }
+
+    /* ── Single card ───────────────────────────────────────────── */
+    .card {
+      background: #0d1520;
+      border: 1px solid #1a2640;
+      border-top: 3px solid #EF9F27;
+      border-radius: 10px;
+      padding: 1.5rem 1.6rem 1.4rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+      cursor: default;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Subtle sheen on hover */
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(239, 159, 39, 0.04) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity 0.25s;
+      pointer-events: none;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(239, 159, 39, 0.25);
+      border-color: rgba(239, 159, 39, 0.5);
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    /* Main dashboard card — slightly special */
+    .card.main {
+      border-top-color: #FFD700;
+      background: linear-gradient(160deg, #0f1a2e 0%, #0d1520 100%);
+    }
+
+    .card.main:hover {
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 215, 0, 0.35);
+      border-color: rgba(255, 215, 0, 0.6);
+    }
+
+    /* Card header row */
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 0.9rem;
+    }
+
+    .card-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.58rem;
+      color: #3a4a60;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      border: 1px solid #1a2640;
+      border-radius: 3px;
+      padding: 2px 7px;
+      margin-top: 2px;
+    }
+
+    .card-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: rgba(239, 159, 39, 0.1);
+      border: 1px solid rgba(239, 159, 39, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .card.main .card-icon {
+      background: rgba(255, 215, 0, 0.1);
+      border-color: rgba(255, 215, 0, 0.25);
+    }
+
+    /* Card title */
+    .card-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #EF9F27;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+      line-height: 1.3;
+    }
+
+    .card.main .card-title {
+      color: #FFD700;
+    }
+
+    /* Card description */
+    .card-desc {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: #6a7a99;
+      line-height: 1.65;
+      flex: 1;
+      margin-bottom: 1.1rem;
+    }
+
+    /* Tech tags */
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 1.1rem;
+    }
+
+    .tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.57rem;
+      color: #4a6080;
+      background: rgba(239, 159, 39, 0.05);
+      border: 1px solid #1e2e48;
+      border-radius: 3px;
+      padding: 2px 7px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* Launch button */
+    .launch-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: #0a0e1a;
+      background: #EF9F27;
+      border: none;
+      border-radius: 5px;
+      padding: 9px 18px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.18s, box-shadow 0.18s, transform 0.12s;
+      align-self: flex-start;
+      text-transform: uppercase;
+    }
+
+    .launch-btn:hover {
+      background: #fdb340;
+      box-shadow: 0 4px 18px rgba(239, 159, 39, 0.45);
+      transform: translateX(2px);
+    }
+
+    .launch-btn:active {
+      transform: translateX(0) scale(0.97);
+    }
+
+    .card.main .launch-btn {
+      background: #FFD700;
+      color: #1a1200;
+    }
+
+    .card.main .launch-btn:hover {
+      background: #ffe540;
+      box-shadow: 0 4px 18px rgba(255, 215, 0, 0.45);
+    }
+
+    .launch-arrow {
+      font-size: 0.85rem;
+      transition: transform 0.15s;
+    }
+
+    .launch-btn:hover .launch-arrow {
+      transform: translateX(3px);
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       DIFFERENTIATORS
+    ══════════════════════════════════════════════════════════ */
+    .diff-section {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0 2rem 2rem;
+    }
+
+    .diff-header {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem;
+      color: #3a4a60;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      text-align: center;
+      margin-bottom: 1.2rem;
+    }
+
+    .diff-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+
+    .diff-card {
+      background: #0d1520;
+      border: 1px solid #1a2640;
+      border-radius: 8px;
+      padding: 1.1rem 1.3rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.9rem;
+    }
+
+    .diff-check {
+      font-size: 1.1rem;
+      color: #4ddd9a;
+      flex-shrink: 0;
+      margin-top: 1px;
+      text-shadow: 0 0 8px rgba(77, 221, 154, 0.5);
+    }
+
+    .diff-content {}
+
+    .diff-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #c8d0e0;
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    .diff-desc {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      color: #4a5a78;
+      line-height: 1.6;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       FOOTER
+    ══════════════════════════════════════════════════════════ */
+    footer {
+      border-top: 1px solid #131d2e;
+      padding: 1.5rem 2.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .footer-left {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem;
+      color: #2e3e58;
+      line-height: 1.6;
+    }
+
+    .footer-right {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem;
+      color: #2e3e58;
+      text-align: right;
+    }
+
+    /* ── Responsive ───────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .cards-row-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .diff-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        padding: 2.5rem 1.5rem 1.5rem;
+      }
+
+      header {
+        padding: 0 1.2rem;
+      }
+
+      .header-badge {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ══════════════════════════════════════════════════════════
+     HEADER
+══════════════════════════════════════════════════════════ -->
+  <header>
+    <div class="logo">
+      <svg class="logo-icon" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Fuselage -->
+        <ellipse cx="19" cy="20" rx="13" ry="4.5" fill="#EF9F27" opacity="0.85" />
+        <!-- Wings -->
+        <path d="M14 20 L4 28 L9 20 Z" fill="#EF9F27" opacity="0.7" />
+        <path d="M24 20 L34 28 L29 20 Z" fill="#EF9F27" opacity="0.7" />
+        <!-- Nose -->
+        <ellipse cx="19" cy="13" rx="3.5" ry="7" fill="#FFD700" />
+        <!-- Tail fins -->
+        <path d="M14 22 L10 30 L17 24 Z" fill="#cc7a00" opacity="0.6" />
+        <path d="M24 22 L28 30 L21 24 Z" fill="#cc7a00" opacity="0.6" />
+        <!-- Cockpit window -->
+        <ellipse cx="19" cy="13" rx="1.8" ry="2.5" fill="#0a0e1a" stroke="#EF9F27" stroke-width="0.5" />
+        <!-- Glow core -->
+        <circle cx="19" cy="19" r="2" fill="rgba(255,215,0,0.35)" />
+      </svg>
+      <div class="logo-wordmark">
+        <div class="logo-name">EcoFlight <span>AI</span></div>
+        <div class="logo-tagline">Physics-Informed 4D Navigation System</div>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <div class="status-dot"></div>
+      <span class="header-status">SYSTEMS NOMINAL</span>
+      <span class="header-badge">Hackathon Demo v1.0</span>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════════════════════════
+     HERO
+══════════════════════════════════════════════════════════ -->
+  <section class="hero">
+    <div class="hero-eyebrow">Mission Control</div>
+    <h1 class="hero-title">
+      <span class="accent">Physics-Informed</span><br>4D Navigation System
+    </h1>
+    <p class="hero-sub">
+      Breguet Range Equation &nbsp;·&nbsp; Pareto-Optimal Routing &nbsp;·&nbsp; Contrail Climate Optimization
+    </p>
+    <div class="hero-judges">
+      Master's Aviation Hackathon Demo &nbsp;—&nbsp; Judges: Sikorsky Aircraft
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════
+     COMPONENT CARDS
+══════════════════════════════════════════════════════════ -->
+  <div class="grid-section">
+    <div class="grid-label">── Select a component to launch ──</div>
+
+    <!-- Row 1 -->
+    <div class="cards-row-2">
+
+      <!-- Component 1 -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-badge">Component 01</div>
+          </div>
+          <div class="card-icon">✦</div>
+        </div>
+        <div class="card-title">Path Explorer Animation</div>
+        <p class="card-desc">
+          Watch A* search a 4D wind-aware graph in real time. Breguet physics on every edge. Nodes represent lat &times;
+          lon &times; altitude &times; time buckets across the North Atlantic corridor.
+        </p>
+        <div class="card-tags">
+          <span class="tag">A* Search</span>
+          <span class="tag">4D Graph</span>
+          <span class="tag">Wind Fields</span>
+          <span class="tag">Canvas Animation</span>
+        </div>
+        <a href="component1_animation.html" class="launch-btn">
+          LAUNCH <span class="launch-arrow">→</span>
+        </a>
+      </div>
+
+      <!-- Component 2 -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-badge">Component 02</div>
+          </div>
+          <div class="card-icon">◈</div>
+        </div>
+        <div class="card-title">Live Route Optimizer</div>
+        <p class="card-desc">
+          Interactive JFK→LHR optimizer with Leaflet map overlay, jet stream exploitation, and XAI explanation panel.
+          Adjust altitude bands and see cost updates in real time.
+        </p>
+        <div class="card-tags">
+          <span class="tag">Leaflet.js</span>
+          <span class="tag">Jet Stream</span>
+          <span class="tag">XAI Panel</span>
+          <span class="tag">Real-time</span>
+        </div>
+        <a href="component2_dashboard.html" class="launch-btn">
+          LAUNCH <span class="launch-arrow">→</span>
+        </a>
+      </div>
+
+    </div>
+
+    <!-- Row 2 -->
+    <div class="cards-row-2">
+
+      <!-- Component 3 -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-badge">Component 03</div>
+          </div>
+          <div class="card-icon">◎</div>
+        </div>
+        <div class="card-title">Pareto Frontier</div>
+        <p class="card-desc">
+          60-route comparison plotted in objective space (fuel vs time). Pareto-optimal frontier highlighted in amber.
+          Real-time weight sliders re-optimize the selected route with ghost efficiency readout.
+        </p>
+        <div class="card-tags">
+          <span class="tag">Chart.js</span>
+          <span class="tag">Pareto Analysis</span>
+          <span class="tag">Breguet Physics</span>
+          <span class="tag">Multi-objective</span>
+        </div>
+        <a href="component3_pareto.html" class="launch-btn">
+          LAUNCH <span class="launch-arrow">→</span>
+        </a>
+      </div>
+
+      <!-- Component 4 -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-badge">Component 04</div>
+          </div>
+          <div class="card-icon">⬡</div>
+        </div>
+        <div class="card-title">Theory Slide</div>
+        <p class="card-desc">
+          Why Dijkstra's algorithm fails aviation. The Breguet Range Equation governs every edge cost — fuel burn is
+          non-linear and state-dependent, violating Dijkstra's additive-cost assumption.
+        </p>
+        <div class="card-tags">
+          <span class="tag">Breguet Equation</span>
+          <span class="tag">Graph Theory</span>
+          <span class="tag">Dijkstra Failure</span>
+          <span class="tag">Physics</span>
+        </div>
+        <a href="component4_theory_slide.html" class="launch-btn">
+          LAUNCH <span class="launch-arrow">→</span>
+        </a>
+      </div>
+
+    </div>
+
+    <!-- Row 3 — About + Main Dashboard -->
+    <div class="cards-row-2">
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-badge">About</div></div>
+          <div class="card-icon">◉</div>
+        </div>
+        <div class="card-title">Methodology &amp; Research</div>
+        <p class="card-desc">
+          Physics foundation, data sources, algorithm comparison, and the science behind EcoFlight AI's climate-optimal routing.
+        </p>
+        <div class="card-tags">
+          <span class="tag">Breguet Equation</span>
+          <span class="tag">Contrail Science</span>
+          <span class="tag">A* vs Dijkstra</span>
+        </div>
+        <a href="ecoflight_about.html" class="launch-btn">
+          OPEN <span class="launch-arrow">→</span>
+        </a>
+      </div>
+      <div class="card main">
+        <div class="card-header">
+          <div>
+            <div class="card-badge" style="border-color:#2a3a50;color:#6a7a50;">Main Dashboard</div>
+          </div>
+          <div class="card-icon" style="background:rgba(255,215,0,0.1);border-color:rgba(255,215,0,0.25);">⬤</div>
+        </div>
+        <div class="card-title">Mission Control — 3D Globe</div>
+        <p class="card-desc">
+          Full 3D globe visualization of the North Atlantic Tracks. Dual climate optimization across fuel burn and
+          persistent contrail formation. The integrated cockpit view for all components.
+        </p>
+        <div class="card-tags">
+          <span class="tag">3D Globe</span>
+          <span class="tag">Contrail Model</span>
+          <span class="tag">Dual Objective</span>
+          <span class="tag">Mission Control</span>
+        </div>
+        <a href="index.html" class="launch-btn">
+          LAUNCH MISSION CONTROL <span class="launch-arrow">→</span>
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+     DIFFERENTIATORS
+══════════════════════════════════════════════════════════ -->
+  <div class="diff-section">
+    <div class="diff-header">── Key Technical Differentiators ──</div>
+    <div class="diff-grid">
+
+      <div class="diff-card">
+        <div class="diff-check">✓</div>
+        <div class="diff-content">
+          <div class="diff-title">Physics-Informed</div>
+          <div class="diff-desc">
+            Breguet Range Equation on every graph edge. Fuel cost is computed as W₀ &times; (1 &minus;
+            e<sup>&minus;R·c/(V·L/D)</sup>), not a linear proxy. State-aware and physically exact.
+          </div>
+        </div>
+      </div>
+
+      <div class="diff-card">
+        <div class="diff-check">✓</div>
+        <div class="diff-content">
+          <div class="diff-title">4D Navigation</div>
+          <div class="diff-desc">
+            Lat &times; Lon &times; Altitude &times; Time in 30-minute buckets. Wind vectors change with altitude band
+            and time slice — the optimizer exploits real jet stream geometry, not averages.
+          </div>
+        </div>
+      </div>
+
+      <div class="diff-card">
+        <div class="diff-check">✓</div>
+        <div class="diff-content">
+          <div class="diff-title">Ghost Efficiency: 97.0%</div>
+          <div class="diff-desc">
+            Ghost fuel = Breguet theoretical minimum with no contingency. Current optimal reaches 97.0% of that limit.
+            The 3% gap is fully explained: ATC constraints, step climbs, wind uncertainty margin.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════════════════════ -->
+  <footer>
+    <div class="footer-left">
+      EcoFlight AI &nbsp;·&nbsp; Physics-Informed 4D Navigation System<br>
+      Master's Aviation Hackathon &nbsp;·&nbsp; Judges: Sikorsky Aircraft
+    </div>
+    <div class="footer-right">
+      All fuel figures computed via Breguet Range Equation.<br>
+      Ghost efficiency = actual_optimal / theoretical_minimum &times; 100
+    </div>
+  </footer>
+
+</body>
+
+</html>
