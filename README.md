@@ -2,21 +2,9 @@
 
 **4D Trajectory Optimization for Sustainable Aviation**
 
-Built for UNH Hackathon 2026 | Team: Gunny & Shruti
+Built for UNH Hackathon 2026 
 
 ---
-
-## 🎯 What Makes Us Win
-
-### Differentiation from other teams:
-
-| Feature | Other Teams | EcoFlight AI |
-|---------|-------------|--------------|
-| **Route Dimension** | 2D (flat map) | **4D** (lat, lon, altitude, time) |
-| **Descent Phase** | Ignored | **CDO optimization** (3 tons CO₂ saved per landing) |
-| **Weather** | Random/synthetic | **NOAA Aviation Weather API** (real wind data) |
-| **User Control** | Fixed output | **Multi-objective** (fuel vs time slider) |
-| **Model** | Black box ML | **Physics-based + ML hybrid** (BADA aircraft models) |
 
 ### Research-Backed Performance
 
