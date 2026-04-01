@@ -14,7 +14,7 @@ Built for UNH Hackathon 2026
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Backend
 
@@ -38,7 +38,7 @@ Frontend runs on `http://localhost:8501`
 
 ---
 
-## 📊 System Architecture
+## System Architecture
 
 ```
 ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
@@ -57,7 +57,7 @@ Frontend runs on `http://localhost:8501`
 
 ---
 
-## 🔬 Technical Highlights
+## Technical Highlights
 
 ### 1. 4D Trajectory Optimization
 
@@ -82,13 +82,13 @@ Optimizes across four dimensions:
 ### 4. Multi-Objective Cost Function
 
 Users choose priority:
-- **🌱 Fuel Mode**: 80% fuel / 20% time (maximum eco)
-- **⚖️ Balanced**: 50/50 (default)
-- **⚡ Speed Mode**: 20% fuel / 80% time (schedule critical)
+- **Fuel Mode**: 80% fuel / 20% time (maximum eco)
+- **Balanced**: 50/50 (default)
+- **Speed Mode**: 20% fuel / 80% time (schedule critical)
 
 ---
 
-## 📈 Sample Results
+## Sample Results
 
 **Route**: New York JFK → Los Angeles LAX  
 **Aircraft**: Boeing 737-800  
@@ -103,7 +103,7 @@ Users choose priority:
 
 ---
 
-## 🎤 Pitch Structure (3 minutes)
+## Pitch Structure (3 minutes)
 
 1. **Hook** (30s): "Aviation produces 2.5% of global CO₂. Every flight optimized saves 350kg fuel."
 
@@ -120,7 +120,7 @@ Users choose priority:
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Backend**: FastAPI, Python, BADA physics models
 - **Frontend**: Streamlit, Folium, Plotly
@@ -129,7 +129,7 @@ Users choose priority:
 
 ---
 
-## 📚 References
+## References
 
 1. "A reliable predict-then-optimize approach for minimizing aircraft fuel consumption" - TRB 2025
 2. "Continuous Descent Operations" - 4AIR Analysis
@@ -141,12 +141,12 @@ Users choose priority:
 
 ## 🏆 Why We Win
 
-✅ **Real research foundation** (not made-up numbers)  
-✅ **4D optimization** (others do 2D)  
-✅ **CDO integration** (others ignore landing)  
-✅ **Live weather data** (not synthetic)  
-✅ **Working demo** with 10 US routes  
-✅ **Clear environmental + economic impact**  
+ **Real research foundation** (not made-up numbers)  
+ **4D optimization** (others do 2D)  
+ **CDO integration** (others ignore landing)  
+ **Live weather data** (not synthetic)  
+ **Working demo** with 10 US routes  
+ **Clear environmental + economic impact**  
 
-**Built by**: Gunny (Backend/ML) & Shruti (Frontend/UX)  
+**Built by**: Ganesh (Backend/ML) & Shruti (Frontend/UX)  
 **Location**: University of New Haven Hackathon 2026
