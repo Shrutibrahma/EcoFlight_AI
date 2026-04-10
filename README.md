@@ -3,7 +3,6 @@
 **4D Trajectory Optimization for Sustainable Aviation**
 
 Built for UNH Hackathon 2026 
-
 ---
 
 ### Research-Backed Performance
